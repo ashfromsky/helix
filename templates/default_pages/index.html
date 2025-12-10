@@ -1,0 +1,724 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Helix - The API that builds itself</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #040556;
+            --secondary: #130A82;
+            --accent: #8D018E;
+            --highlight: #C701AE;
+            --dark: #0a0a0f;
+            --darker: #050508;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--darker);
+            color: #ffffff;
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        /* Animated grid background */
+        .grid-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image:
+                linear-gradient(rgba(199, 1, 174, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(199, 1, 174, 0.03) 1px, transparent 1px);
+            background-size: 60px 60px;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 40px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Header - Minimal & Floating */
+        header {
+            padding: 40px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(10, 10, 15, 0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(199, 1, 174, 0.1);
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 28px;
+            font-weight: 900;
+            letter-spacing: -2px;
+            color: #ffffff;
+            position: relative;
+        }
+
+        .logo::before {
+            content: '';
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: var(--highlight);
+            border-radius: 50%;
+            left: -20px;
+            top: 50%;
+            transform: translateY(-50%);
+            box-shadow: 0 0 20px var(--highlight);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 50px;
+            list-style: none;
+            align-items: center;
+        }
+
+        .nav-links a {
+            color: rgba(255, 255, 255, 0.5);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: var(--highlight);
+        }
+
+        /* Hero - Asymmetric & Bold */
+        .hero {
+            padding: 180px 0 200px;
+            position: relative;
+        }
+
+        .hero-content {
+            max-width: 900px;
+        }
+
+        .hero-tag {
+            display: inline-block;
+            padding: 8px 20px;
+            background: rgba(199, 1, 174, 0.1);
+            border: 1px solid rgba(199, 1, 174, 0.3);
+            border-radius: 30px;
+            font-size: 12px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--highlight);
+            margin-bottom: 40px;
+        }
+
+        h1 {
+            font-size: 120px;
+            font-weight: 900;
+            line-height: 0.95;
+            letter-spacing: -6px;
+            margin-bottom: 40px;
+            color: #ffffff;
+        }
+
+        .hero-gradient {
+            background: linear-gradient(135deg, #ffffff 0%, var(--highlight) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            display: block;
+        }
+
+        .hero-subtitle {
+            font-size: 22px;
+            color: rgba(255, 255, 255, 0.4);
+            max-width: 600px;
+            margin-bottom: 60px;
+            font-weight: 300;
+            line-height: 1.7;
+        }
+
+        .cta-group {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 20px 50px;
+            font-size: 16px;
+            font-weight: 600;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary {
+            background: var(--highlight);
+            color: #ffffff;
+            border-radius: 0;
+            clip-path: polygon(0 0, 100% 0, 95% 100%, 0% 100%);
+        }
+
+        .btn-primary:hover {
+            background: #ffffff;
+            color: var(--darker);
+        }
+
+        .btn-ghost {
+            background: transparent;
+            color: rgba(255, 255, 255, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-ghost:hover {
+            border-color: var(--highlight);
+            color: var(--highlight);
+        }
+
+        /* Decorative element */
+        .hero-decoration {
+            position: absolute;
+            right: -100px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 500px;
+            height: 500px;
+            border: 1px solid rgba(199, 1, 174, 0.1);
+            border-radius: 50%;
+        }
+
+        .hero-decoration::before {
+            content: '';
+            position: absolute;
+            inset: 40px;
+            border: 1px solid rgba(199, 1, 174, 0.08);
+            border-radius: 50%;
+        }
+
+        /* Features - Cards Grid */
+        .features {
+            padding: 200px 0;
+            background: linear-gradient(180deg, transparent 0%, rgba(199, 1, 174, 0.02) 100%);
+        }
+
+        .section-header {
+            margin-bottom: 100px;
+        }
+
+        .section-label {
+            font-size: 12px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: var(--highlight);
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            font-size: 56px;
+            font-weight: 900;
+            letter-spacing: -2px;
+            max-width: 700px;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2px;
+            background: rgba(199, 1, 174, 0.1);
+        }
+
+        .feature-card {
+            background: var(--darker);
+            padding: 60px 40px;
+            position: relative;
+            overflow: hidden;
+            transition: background 0.3s;
+        }
+
+        .feature-card:hover {
+            background: rgba(199, 1, 174, 0.03);
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--highlight), transparent);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .feature-card:hover::before {
+            opacity: 1;
+        }
+
+        .feature-number {
+            font-size: 14px;
+            color: var(--highlight);
+            margin-bottom: 30px;
+            font-weight: 600;
+        }
+
+        .feature-title {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            letter-spacing: -1px;
+        }
+
+        .feature-description {
+            color: rgba(255, 255, 255, 0.4);
+            font-size: 15px;
+            line-height: 1.8;
+        }
+
+        /* Code Block - Terminal Style */
+        .code-section {
+            padding: 200px 0;
+        }
+
+        .code-wrapper {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: center;
+        }
+
+        .code-info h2 {
+            font-size: 48px;
+            font-weight: 900;
+            letter-spacing: -2px;
+            margin-bottom: 30px;
+        }
+
+        .code-info p {
+            font-size: 18px;
+            color: rgba(255, 255, 255, 0.4);
+            line-height: 1.8;
+            margin-bottom: 40px;
+        }
+
+        .terminal {
+            background: #000000;
+            border: 1px solid rgba(199, 1, 174, 0.2);
+            padding: 0;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 14px;
+            position: relative;
+        }
+
+        .terminal-header {
+            background: rgba(199, 1, 174, 0.05);
+            padding: 15px 20px;
+            border-bottom: 1px solid rgba(199, 1, 174, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .terminal-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .terminal-body {
+            padding: 30px;
+            line-height: 1.8;
+        }
+
+        .cmd {
+            color: var(--highlight);
+        }
+
+        .output {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .comment {
+            color: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Stats - Minimal Counters */
+        .stats {
+            padding: 200px 0;
+            border-top: 1px solid rgba(199, 1, 174, 0.1);
+            border-bottom: 1px solid rgba(199, 1, 174, 0.1);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 80px;
+        }
+
+        .stat {
+            text-align: left;
+        }
+
+        .stat-number {
+            font-size: 72px;
+            font-weight: 900;
+            letter-spacing: -3px;
+            color: var(--highlight);
+            margin-bottom: 10px;
+            line-height: 1;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.4);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* CTA Section */
+        .cta-section {
+            padding: 250px 0;
+            text-align: center;
+        }
+
+        .cta-section h2 {
+            font-size: 80px;
+            font-weight: 900;
+            letter-spacing: -4px;
+            margin-bottom: 60px;
+            line-height: 1;
+        }
+
+        /* Footer - Minimal */
+        footer {
+            padding: 80px 0 40px;
+            border-top: 1px solid rgba(199, 1, 174, 0.1);
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 80px;
+            margin-bottom: 80px;
+        }
+
+        .footer-brand {
+            max-width: 300px;
+        }
+
+        .footer-brand .logo {
+            margin-bottom: 20px;
+        }
+
+        .footer-brand p {
+            color: rgba(255, 255, 255, 0.3);
+            font-size: 14px;
+            line-height: 1.8;
+        }
+
+        .footer-section h4 {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 20px;
+            color: var(--highlight);
+        }
+
+        .footer-section ul {
+            list-style: none;
+        }
+
+        .footer-section li {
+            margin-bottom: 12px;
+        }
+
+        .footer-section a {
+            color: rgba(255, 255, 255, 0.4);
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.3s;
+        }
+
+        .footer-section a:hover {
+            color: var(--highlight);
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: 40px;
+            border-top: 1px solid rgba(199, 1, 174, 0.1);
+            color: rgba(255, 255, 255, 0.3);
+            font-size: 13px;
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            h1 { font-size: 80px; letter-spacing: -4px; }
+            .features-grid { grid-template-columns: repeat(2, 1fr); }
+            .code-wrapper { grid-template-columns: 1fr; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        @media (max-width: 768px) {
+            .container { padding: 0 20px; }
+            h1 { font-size: 48px; letter-spacing: -2px; }
+            .hero { padding: 100px 0; }
+            .hero-decoration { display: none; }
+            .nav-links { display: none; }
+            .features-grid { grid-template-columns: 1fr; gap: 1px; }
+            .cta-group { flex-direction: column; width: 100%; }
+            .btn { width: 100%; text-align: center; }
+            .footer-grid { grid-template-columns: 1fr; gap: 40px; }
+            .cta-section h2 { font-size: 48px; }
+            .stats-grid { grid-template-columns: 1fr; gap: 40px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="grid-background"></div>
+
+    <!-- Header -->
+    <header>
+        <div class="container">
+            <nav>
+                <div class="logo">HELIX</div>
+                <ul class="nav-links">
+                    <li><a href="#features">Features</a></li>
+                    <li><a href="#docs">Docs</a></li>
+                    <li><a href="https://github.com">GitHub</a></li>
+                    <li><a href="#dashboard">Dashboard</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Hero -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <span class="hero-tag">AI-Powered API Mocking</span>
+                <h1>
+                    The API<br>
+                    <span class="hero-gradient">that builds<br>itself</span>
+                </h1>
+                <p class="hero-subtitle">
+                    Stop writing JSON mocks. Focus on building features.
+                    Helix generates realistic API responses automatically using AI.
+                </p>
+                <div class="cta-group">
+                    <a href="#" class="btn btn-primary">Get Started</a>
+                    <a href="#" class="btn btn-ghost">View on GitHub →</a>
+                </div>
+            </div>
+            <div class="hero-decoration"></div>
+        </div>
+    </section>
+
+    <!-- Features -->
+    <section class="features" id="features">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-label">Capabilities</div>
+                <h2 class="section-title">Built for modern development workflows</h2>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-number">01</div>
+                    <h3 class="feature-title">Ghost Mode</h3>
+                    <p class="feature-description">
+                        AI generates realistic responses for non-existent endpoints.
+                        No configuration, no setup. Just make requests.
+                    </p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-number">02</div>
+                    <h3 class="feature-title">Recorder Mode</h3>
+                    <p class="feature-description">
+                        Proxy to real backend and record all responses.
+                        Automatic fallback when services fail.
+                    </p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-number">03</div>
+                    <h3 class="feature-title">Context Awareness</h3>
+                    <p class="feature-description">
+                        Helix remembers your actions. Create a user,
+                        then list users—it returns what you created.
+                    </p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-number">04</div>
+                    <h3 class="feature-title">Chaos Testing</h3>
+                    <p class="feature-description">
+                        Simulate production failures: random errors, latency spikes,
+                        timeouts. Build resilient applications.
+                    </p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-number">05</div>
+                    <h3 class="feature-title">Smart Data</h3>
+                    <p class="feature-description">
+                        Generates realistic data: proper names, valid emails,
+                        correct dates. Your demos look professional.
+                    </p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-number">06</div>
+                    <h3 class="feature-title">OpenAPI Ready</h3>
+                    <p class="feature-description">
+                        Import your OpenAPI schema. Helix generates responses
+                        that match your specification perfectly.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Code Example -->
+    <section class="code-section">
+        <div class="container">
+            <div class="code-wrapper">
+                <div class="code-info">
+                    <h2>Zero configuration required</h2>
+                    <p>
+                        Start Helix, make any request to any endpoint.
+                        AI analyzes your request and generates a realistic response instantly.
+                    </p>
+                    <a href="#" class="btn btn-ghost">Read Documentation →</a>
+                </div>
+                <div class="terminal">
+                    <div class="terminal-header">
+                        <div class="terminal-dot"></div>
+                        <div class="terminal-dot"></div>
+                        <div class="terminal-dot"></div>
+                    </div>
+                    <div class="terminal-body">
+<span class="comment"># Start Helix</span>
+<span class="cmd">$ docker run -p 8080:8080 helix/helix</span>
+
+<span class="comment"># Make any request</span>
+<span class="cmd">$ curl http://localhost:8080/api/users</span>
+
+<span class="output">{
+  "users": [
+    {
+      "id": "usr_a1b2c3",
+      "name": "Sarah Chen",
+      "email": "sarah@company.com",
+      "role": "developer",
+      "created_at": "2024-12-10T14:30:00Z"
+    }
+  ]
+}</span>
+
+<span class="comment"># No mock files. No configuration. Magic.</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats -->
+    <section class="stats">
+        <div class="container">
+            <div class="stats-grid">
+                <div class="stat">
+                    <div class="stat-number">{{ stars|default('2.4K') }}</div>
+                    <div class="stat-label">GitHub Stars</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-number">{{ downloads|default('120K') }}</div>
+                    <div class="stat-label">Downloads</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-number">{{ users|default('850+') }}</div>
+                    <div class="stat-label">Active Users</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-number">{{ response_time|default('< 80ms') }}</div>
+                    <div class="stat-label">Response Time</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="cta-section">
+        <div class="container">
+            <h2>Ready to ship<br>faster?</h2>
+            <div class="cta-group" style="justify-content: center;">
+                <a href="#" class="btn btn-primary">Start Using Helix</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <div class="logo">HELIX</div>
+                    <p>
+                        The AI-powered API mocking server that eliminates manual mock creation.
+                        Built for developers who want to focus on features, not infrastructure.
+                    </p>
+                </div>
+                <div class="footer-section">
+                    <h4>Product</h4>
+                    <ul>
+                        <li><a href="#">Features</a></li>
+                        <li><a href="#">Changelog</a></li>
+                        <li><a href="#">Roadmap</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Resources</h4>
+                    <ul>
+                        <li><a href="#">Documentation</a></li>
+                        <li><a href="#">API Reference</a></li>
+                        <li><a href="#">Examples</a></li>
+                        <li><a href="#">Blog</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Community</h4>
+                    <ul>
+                        <li><a href="#">GitHub</a></li>
+                        <li><a href="#">Discord</a></li>
+                        <li><a href="#">Twitter</a></li>
+                        <li><a href="#">Reddit</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>© 2024 Helix. Built with precision for developers.</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>
