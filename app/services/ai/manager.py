@@ -49,5 +49,16 @@ class AIManager:
     async def generate_response(self, method: str, path: str, body: dict = None, context: list = None) -> dict:
         return await self.provider.generate_response(method, path, body, context)
 
+    def get_status(self) -> dict:
+        """
+        Returns the current status of the AI provider.
+        Used by /health and /status endpoints.
+        """
+        return {
+            "provider": self.provider_name,
+            "model": getattr(self.provider, "model", "template-based"),
+            "status": "active"
+        }
+
 
 ai_manager = AIManager()
