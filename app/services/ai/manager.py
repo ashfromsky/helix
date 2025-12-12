@@ -1,25 +1,53 @@
-from app.services.ai.core.config import ai_settings
+import logging
+from app.services.ai.config import ai_settings
 from app.services.ai.providers.deepseek import DeepSeekProvider
 from app.services.ai.providers.ollama import OllamaProvider
 from app.services.ai.providers.groq import GroqProvider
-from app.services.ai.providers.demo import DemoProvider # Fallback
+from app.services.ai.providers.demo import DemoProvider
+
+logger = logging.getLogger(__name__)
+
 
 class AIManager:
     def __init__(self):
-        self.provider_name = ai_settings.AI_PROVIDER # "deepseek", "ollama", etc.
+        self.provider_name = ai_settings.AI_PROVIDER
         self.provider = self._get_provider()
 
     def _get_provider(self):
-        if self.provider_name == "deepseek":
-            return DeepSeekProvider()
-        elif self.provider_name == "ollama":
-            return OllamaProvider()
-        elif self.provider_name == "groq":
-            return GroqProvider()
-        else:
+        try:
+            if self.provider_name == "deepseek":
+                if not ai_settings.OPENROUTER_API_KEY:
+                    logger.warning("DeepSeek key missing. Falling back to DEMO.")
+                    return DemoProvider()
+                return DeepSeekProvider(
+                    api_key=ai_settings.OPENROUTER_API_KEY,
+                    model=ai_settings.OPENROUTER_MODEL
+                )
+
+            elif self.provider_name == "ollama":
+                return OllamaProvider(
+                    host=ai_settings.OLLAMA_HOST,
+                    model=ai_settings.OLLAMA_MODEL
+                )
+
+            elif self.provider_name == "groq":
+                if not ai_settings.GROQ_API_KEY:
+                    logger.warning("Groq key missing. Falling back to DEMO.")
+                    return DemoProvider()
+                return GroqProvider(
+                    api_key=ai_settings.GROQ_API_KEY,
+                    model=ai_settings.GROQ_MODEL
+                )
+
+            else:
+                return DemoProvider()
+
+        except Exception as e:
+            logger.error(f"Failed to init provider {self.provider_name}: {e}")
             return DemoProvider()
 
-    async def generate(self, system: str, user: str) -> str:
-        return await self.provider.generate_code(system, user)
+    async def generate_response(self, method: str, path: str, body: dict = None, context: list = None) -> dict:
+        return await self.provider.generate_response(method, path, body, context)
+
 
 ai_manager = AIManager()

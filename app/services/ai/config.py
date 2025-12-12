@@ -73,5 +73,11 @@ class AISettings(BaseSettings):
         default=True
     )
 
+    CHAOS_ENABLED: bool = False
+    CHAOS_ERROR_RATE: float = 0.1
+    CHAOS_LATENCY_RATE: float = 0.15
+    CHAOS_MIN_DELAY: int = 500
+    CHAOS_MAX_DELAY: int = 2000
+
 
 ai_settings = AISettings()

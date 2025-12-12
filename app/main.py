@@ -28,10 +28,6 @@ app.include_router(ui_routes.router, tags=["UI"])
 
 app.include_router(catch_all.router, tags=["Mocking"])
 
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)
-
 @app.middleware("http")
 async def chaos_middleware(request: Request, call_next):
     if not getattr(ai_settings, "CHAOS_ENABLED", False):
@@ -59,3 +55,8 @@ async def chaos_middleware(request: Request, call_next):
 
     response = await call_next(request)
     return response
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)
+

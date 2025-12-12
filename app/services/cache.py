@@ -1,7 +1,9 @@
 from app.database.core.connect import get_redis_connection
 import json
 import hashlib
+import logging
 
+logger = logging.getLogger(__name__)
 
 class CacheService:
     def __init__(self):
@@ -12,14 +14,23 @@ class CacheService:
         return f"{session_id}:{method}:{path}:{body_hash}"
 
     async def get(self, key: str):
-        data = self.redis.get(key)
-        return json.loads(data) if data else None
+        try:
+            data = self.redis.get(key)
+            return json.loads(data) if data else None
+        except Exception as e:
+            logger.warning(f"⚠️ Redis is unavailable: {e}")
+            return None
 
     async def set(self, key: str, value: dict, ttl: int = 86400):
-        self.redis.setex(key, ttl, json.dumps(value))
+        try:
+            self.redis.setex(key, ttl, json.dumps(value))
+        except Exception as e:
+            logger.warning(f"⚠️ Could not write to Redis: {e}")
 
     async def delete(self, key: str):
-        self.redis.delete(key)
-
+        try:
+            self.redis.delete(key)
+        except Exception:
+            pass
 
 cache_service = CacheService()
