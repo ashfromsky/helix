@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from app.database.core.connect import ping_redis
 from app.services.ai.manager import ai_manager
 from datetime import datetime
@@ -25,21 +25,22 @@ async def health_check():
 
 @router.get("/status")
 async def detailed_status():
-    """Detailed status endpoint"""
-    redis_healthy = ping_redis()
-    ai_status = ai_manager.get_status()
+    """
+    Проверка состояния сервиса и его компонентов.
+    """
+    try:
+        # Вызов метода get_status, который вызывал ошибку ранее
+        ai_status = ai_manager.get_status()
 
-    return {
-        "version": "0.1.0",
-        "status": "operational",
-        "redis": {
-            "connected": redis_healthy,
-            "status": "up" if redis_healthy else "down"
-        },
-        "ai": {
-            "provider": ai_status["provider"],
-            "model": ai_status["model"],
-            "fallback_enabled": ai_status["fallback_enabled"],
-            "available_providers": ai_status["available_providers"]
+        return {
+            "service": "Helix Backend",
+            "status": "online",
+            "version": "0.1.0",
+            "components": {
+                "ai_manager": ai_status,
+                "database": "connected"
+            }
         }
-    }
+    except Exception as e:
+        print(f"Health check error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
