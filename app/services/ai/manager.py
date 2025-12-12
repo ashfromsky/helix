@@ -1,10 +1,8 @@
-from .providers.demo import DemoProvider
-
 from .config import ai_settings, AIProvider
+from .providers.demo import DemoProvider
 from .providers.deepseek import DeepSeekProvider
 from .providers.ollama import OllamaProvider
 from .providers.groq import GroqProvider
-from .providers.demo import DemoProvider
 from typing import Dict, Any, Optional
 import logging
 
@@ -12,12 +10,17 @@ logger = logging.getLogger(__name__)
 
 
 class AIManager:
+    """
+    AI Manager - orchestrates AI providers
+    Handles fallback logic and provider initialization
+    """
 
     def __init__(self):
         self.provider = self._initialize_provider()
         self.demo_provider = DemoProvider()
 
     def _initialize_provider(self):
+        """Initialize AI provider based on settings"""
         provider_type = ai_settings.AI_PROVIDER
 
         try:
@@ -52,7 +55,10 @@ class AIManager:
                     return DemoProvider()
 
                 logger.info("Using Groq")
-                return GroqProvider(api_key=ai_settings.GROQ_API_KEY)
+                return GroqProvider(
+                    api_key=ai_settings.GROQ_API_KEY,
+                    model=ai_settings.GROQ_MODEL
+                )
 
             else:  # DEMO
                 logger.info("Using DEMO mode (template-based responses)")
@@ -70,6 +76,7 @@ class AIManager:
             body: Optional[Dict] = None,
             context: Optional[list] = None
     ) -> Dict[str, Any]:
+        """Generate API response using configured provider"""
         try:
             return await self.provider.generate_response(
                 method=method,
@@ -92,6 +99,7 @@ class AIManager:
                 raise
 
     def get_status(self) -> Dict[str, Any]:
+        """Get current AI manager status"""
         return {
             "provider": ai_settings.AI_PROVIDER.value,
             "model": self._get_current_model(),
@@ -100,6 +108,7 @@ class AIManager:
         }
 
     def _get_current_model(self) -> str:
+        """Get current model name"""
         if ai_settings.AI_PROVIDER == AIProvider.DEEPSEEK:
             return ai_settings.OPENROUTER_MODEL
         elif ai_settings.AI_PROVIDER == AIProvider.OLLAMA:
@@ -110,6 +119,7 @@ class AIManager:
             return "template-based"
 
     def _check_available_providers(self) -> Dict[str, bool]:
+        """Check which providers are available"""
         return {
             "deepseek": bool(ai_settings.OPENROUTER_API_KEY),
             "ollama": self._check_ollama_available(),
@@ -118,6 +128,7 @@ class AIManager:
         }
 
     def _check_ollama_available(self) -> bool:
+        """Check if Ollama is accessible"""
         import httpx
         try:
             response = httpx.get(f"{ai_settings.OLLAMA_HOST}/api/tags", timeout=2)
@@ -126,4 +137,5 @@ class AIManager:
             return False
 
 
+# Singleton instance
 ai_manager = AIManager()

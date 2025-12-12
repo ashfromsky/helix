@@ -4,7 +4,7 @@ from .base import BaseAIProvider
 from ..config import ai_settings
 
 
-class DeepSeekProvider(BaseAIProvider):
+class GroqProvider(BaseAIProvider):
     def __init__(self, api_key: str, model: str):
         self.api_key = api_key
         self.model = model

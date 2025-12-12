@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: helix-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  helix:
+    build: .
+    container_name: helix-server
+    ports:
+      - "8080:8080"
+    environment:
+      - HELIX_REDIS_HOST=redis
+      - HELIX_REDIS_PORT=6379
+      - HELIX_AI_PROVIDER=demo
+      - HELIX_PORT=8080
+      - HELIX_DEBUG=true
+    depends_on:
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./app:/app/app
+      - ./templates:/app/templates
+      - ./assets:/app/assets
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8080 --reload
+
+volumes:
+  redis_data:
