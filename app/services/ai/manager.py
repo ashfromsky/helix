@@ -1,3 +1,5 @@
+from .providers.demo import DemoProvider
+
 from .config import ai_settings, AIProvider
 from .providers.deepseek import DeepSeekProvider
 from .providers.ollama import OllamaProvider
