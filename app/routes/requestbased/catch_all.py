@@ -1,69 +1,63 @@
-﻿from fastapi import APIRouter, Request
+﻿from fastapi import APIRouter, Request, Response
 from fastapi.responses import JSONResponse
-from app.services.ai.manager import ai_manager
-from app.services.cache import cache_service
-from app.services.context import context_manager
-import logging
+import hashlib
+import json
 
-logger = logging.getLogger(__name__)
+from app.services.ai.manager import AIManager
+from app.services.cache import CacheService
+from app.database.core.config import settings
 
-router = APIRouter(tags=["catch_all"])
+router = APIRouter()
+ai_manager = AIManager()
+cache = CacheService()
 
 
-@router.api_route("/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH"])
-async def handle_request(path: str, request: Request):
-    """
-    Catch-all handler for all API requests
-    Generates mock responses using AI or cache
-    """
+async def get_request_fingerprint(method: str, path: str, body: bytes) -> str:
+    raw = f"{method}:{path}"
+    return hashlib.md5(raw.encode()).hexdigest()
+
+
+@router.api_route("/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"])
+async def catch_all_handler(path: str, request: Request):
+    method = request.method
+
+    body_bytes = await request.body()
     try:
-        method = request.method
+        body_json = json.loads(body_bytes) if body_bytes else None
+    except json.JSONDecodeError:
+        body_json = None
 
-        body = None
-        if request.method in ["POST", "PUT", "PATCH"]:
-            try:
-                body = await request.json()
-            except:
-                body = None
+    fingerprint = await get_request_fingerprint(method, path, body_bytes)
+    cached_response = await cache.get(fingerprint)
 
-        session_id = request.headers.get("X-Session-ID", "default")
+    if cached_response:
+        data = json.loads(cached_response)
+        return JSONResponse(content=data["body"], status_code=data["status_code"])
 
-        cache_key = cache_service.get_cache_key(session_id, method, path, body)
-        cached = await cache_service.get(cache_key)
-        if cached:
-            logger.info(f"Cache HIT: {method} /{path}")
-            return JSONResponse(
-                status_code=cached.get("status_code", 200),
-                content=cached.get("body", {}),
-                headers=cached.get("headers", {})
-            )
+    system_instruction = "You are a mock server. Generate realistic JSON response."
+    user_query = f"Method: {method}, Path: /{path}, Body: {body_json}"
 
-        context = await context_manager.get_context(session_id)
+    try:
+        ai_result_raw = await ai_manager.generate(system_instruction, user_query)
 
-        logger.info(f"Generating response: {method} /{path}")
-        response = await ai_manager.generate_response(method, path, body, context)
+        try:
+            ai_data = json.loads(ai_result_raw)
+            status_code = ai_data.get("status_code", 200)
+            response_body = ai_data.get("body", ai_data)
+        except json.JSONDecodeError:
+            status_code = 200
+            response_body = {"message": ai_result_raw}
 
-        await cache_service.set(cache_key, response)
+        to_cache = {
+            "status_code": status_code,
+            "body": response_body
+        }
+        await cache.set(fingerprint, json.dumps(to_cache))
 
-        await context_manager.add_to_context(session_id, {
-            "method": method,
-            "path": path,
-            "body": body,
-            "response": response
-        })
-
-        return JSONResponse(
-            status_code=response.get("status_code", 200),
-            content=response.get("body", {}),
-            headers=response.get("headers", {})
-        )
+        return JSONResponse(content=response_body, status_code=status_code)
 
     except Exception as e:
-        logger.error(f"Error handling request: {e}")
         return JSONResponse(
-            status_code=500,
-            content={
-                "error": "Internal server error",
-                "message": str(e)
-            }
+            content={"error": "AI Generation Failed", "detail": str(e)},
+            status_code=500
         )

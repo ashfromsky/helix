@@ -1,106 +1,61 @@
-﻿from fastapi import FastAPI
-from fastapi.responses import JSONResponse
-from starlette.middleware.cors import CORSMiddleware
-from app.routes.ui.default import router as default_router
-from app.routes.ui.health import router as health_router
-from app.routes.requestbased.catch_all import router as catch_all_router
+﻿import random
 import logging
-import sys
+import asyncio
 
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.StreamHandler(sys.stdout)
-    ]
-)
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
 
-logger = logging.getLogger(__name__)
-
+from app.routes.ui import default as ui_routes
+from app.routes.ui import health
+from app.routes.requestbased import catch_all
+from app.database.core.config import settings
+from app.services.ai.config import ai_settings
 app = FastAPI(
-    title="Helix",
-    description="AI-powered API mocking server that generates realistic responses automatically",
-    version="0.1.0",
-    docs_url="/docs",
-    redoc_url="/redoc"
+    title="MockPilot",
+    description="AI-Powered API Mocking Platform",
+    version="1.0.0"
 )
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+logger = logging.getLogger("uvicorn.error")
 
+app.mount("/static", StaticFiles(directory="static"), name="static")
+templates = Jinja2Templates(directory="templates")
 
-@app.exception_handler(Exception)
-async def global_exception_handler(request, exc):
-    logger.error(f"Global exception: {exc}", exc_info=True)
-    return JSONResponse(
-        status_code=500,
-        content={
-            "error": "Internal server error",
-            "message": str(exc),
-            "path": str(request.url)
-        }
-    )
+app.include_router(health.router, tags=["Health"])
+app.include_router(ui_routes.router, tags=["UI"])
 
-
-app.include_router(health_router)
-app.include_router(default_router)
-
-app.include_router(catch_all_router)
-
-logger.info("Helix server initialized")
-
-
-@app.on_event("startup")
-async def startup_event():
-    """Startup event handler - check dependencies"""
-    logger.info("=" * 60)
-    logger.info("🌀 Starting Helix Server")
-    logger.info("=" * 60)
-
-    from app.database.core.connect import ping_redis
-    if ping_redis():
-        logger.info("✓ Redis connection: OK")
-    else:
-        logger.warning("✗ Redis connection: FAILED (using in-memory fallback)")
-
-    from app.services.ai.manager import ai_manager
-    status = ai_manager.get_status()
-    logger.info(f"✓ AI Provider: {status['provider']}")
-    logger.info(f"✓ AI Model: {status['model']}")
-    logger.info(f"✓ Fallback enabled: {status['fallback_enabled']}")
-
-    available = status['available_providers']
-    logger.info("Available AI providers:")
-    for provider, is_available in available.items():
-        status_icon = "✓" if is_available else "✗"
-        logger.info(f"  {status_icon} {provider}")
-
-    logger.info("=" * 60)
-    logger.info("🚀 Helix is ready!")
-    logger.info("   Web UI: http://localhost:8080")
-    logger.info("   Health: http://localhost:8080/health")
-    logger.info("   Docs:   http://localhost:8080/docs")
-    logger.info("=" * 60)
-
-
-@app.on_event("shutdown")
-async def shutdown_event():
-    """Shutdown event handler"""
-    logger.info("Shutting down Helix server...")
-
+app.include_router(catch_all.router, tags=["Mocking"])
 
 if __name__ == "__main__":
     import uvicorn
+    uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)
 
-    uvicorn.run(
-        app,
-        host="0.0.0.0",
-        port=8080,
-        reload=True,
-        log_level="info"
-    )
+@app.middleware("http")
+async def chaos_middleware(request: Request, call_next):
+    if not getattr(ai_settings, "CHAOS_ENABLED", False):
+        return await call_next(request)
+
+    if request.url.path.startswith(("/docs", "/redoc", "/openapi.json", "/health")):
+        return await call_next(request)
+
+    if random.random() < getattr(ai_settings, "CHAOS_LATENCY_RATE", 0.0):
+        min_delay = getattr(ai_settings, "CHAOS_MIN_DELAY", 100) / 1000
+        max_delay = getattr(ai_settings, "CHAOS_MAX_DELAY", 2000) / 1000
+        delay = random.uniform(min_delay, max_delay)
+        logger.warning(f"🐌 Chaos: Adding delay {delay:.2f}s to {request.url.path}")
+        await asyncio.sleep(delay)
+
+    if random.random() < getattr(ai_settings, "CHAOS_ERROR_RATE", 0.0):
+        logger.error(f"💥 Chaos: Injecting 500 error to {request.url.path}")
+        return JSONResponse(
+            status_code=500,
+            content={
+                "error": "Chaos Monkey Strike",
+                "message": "Simulated infrastructure failure by Helix"
+            }
+        )
+
+    response = await call_next(request)
+    return response
