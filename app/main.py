@@ -1,6 +1,6 @@
-﻿from fastapi import FastAPI, Request, HTTPException
+﻿from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
-from app.routes.default import router as default_router
+from app.routes.ui.default import router as default_router
 app = FastAPI(
     title="Helix",
     version="0.1.0"
