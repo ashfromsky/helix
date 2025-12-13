@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Helix Dashboard</title>
+    <style>
+        :root { --primary: #040556; --highlight: #C701AE; --darker: #050508; --success: #00ff9d; --error: #ff0055; }
+        body { background: var(--darker); color: #fff; font-family: 'Inter', sans-serif; padding: 0; margin: 0; }
+
+        .layout { display: grid; grid-template-columns: 250px 1fr; min-height: 100vh; }
+
+        .sidebar { background: rgba(10,10,15,0.9); border-right: 1px solid rgba(199,1,174,0.1); padding: 20px; }
+        .logo { font-size: 24px; font-weight: 900; margin-bottom: 40px; color: #fff; display: block; text-decoration: none;}
+        .menu-item { display: block; padding: 12px 15px; color: rgba(255,255,255,0.6); text-decoration: none; border-radius: 6px; margin-bottom: 5px; transition: 0.2s; }
+        .menu-item:hover, .menu-item.active { background: rgba(199,1,174,0.1); color: var(--highlight); }
+
+        .content { padding: 40px; overflow-y: auto; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        h1 { margin: 0; font-size: 24px; }
+
+        .logs-container { background: #0a0a0f; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; overflow: hidden; }
+        .log-row { display: grid; grid-template-columns: 80px 80px 1fr 80px 100px; padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); cursor: pointer; transition: 0.2s; align-items: center; }
+        .log-row:hover { background: rgba(255,255,255,0.02); }
+        .log-header { font-weight: 600; color: rgba(255,255,255,0.4); font-size: 12px; text-transform: uppercase; background: rgba(0,0,0,0.3); }
+
+        .method { font-family: monospace; font-weight: bold; }
+        .method.GET { color: #61affe; }
+        .method.POST { color: #49cc90; }
+        .method.DELETE { color: #f93e3e; }
+        .method.PUT { color: #fca130; }
+
+        .status { padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; text-align: center; }
+        .status.s-200 { background: rgba(0,255,157,0.1); color: var(--success); }
+        .status.s-400, .status.s-500 { background: rgba(255,0,85,0.1); color: var(--error); }
+
+        .detail-panel { position: fixed; right: -600px; top: 0; width: 600px; height: 100%; background: #0f0f15; border-left: 1px solid rgba(255,255,255,0.1); transition: 0.3s; padding: 30px; box-shadow: -10px 0 30px rgba(0,0,0,0.5); overflow-y: auto; z-index: 100; }
+        .detail-panel.open { right: 0; }
+        pre { background: #000; padding: 15px; border-radius: 6px; overflow-x: auto; font-size: 13px; color: #a5b3ce; border: 1px solid rgba(255,255,255,0.1); }
+        .close-btn { position: absolute; top: 20px; right: 20px; cursor: pointer; font-size: 24px; }
+    </style>
+</head>
+<body>
+    <div class="layout">
+        <div class="sidebar">
+            <a href="/" class="logo">HELIX</a>
+            <a href="#" class="menu-item active">Live Inspector</a>
+            <a href="/docs" class="menu-item">API Docs</a>
+        </div>
+        <div class="content">
+            <div class="header">
+                <h1>Live Requests</h1>
+                <button onclick="clearLogs()" style="background: transparent; border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 8px 16px; cursor: pointer;">Clear Logs</button>
+            </div>
+
+            <div class="logs-container">
+                <div class="log-row log-header">
+                    <div>Time</div>
+                    <div>Method</div>
+                    <div>Path</div>
+                    <div>Status</div>
+                    <div>Latency</div>
+                </div>
+                <div id="logs-list">
+                    </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="detail-panel" id="detailPanel">
+        <span class="close-btn" onclick="closeDetails()">&times;</span>
+        <h2 id="detailPath">/api/users</h2>
+
+        <h3>Request Body</h3>
+        <pre id="reqBody">{}</pre>
+
+        <h3>Response Body</h3>
+        <pre id="resBody">...</pre>
+    </div>
+
+    <script>
+        function renderLogs(logs) {
+            const container = document.getElementById('logs-list');
+            container.innerHTML = logs.map(log => `
+                <div class="log-row" onclick='showDetails(${JSON.stringify(log)})'>
+                    <div style="opacity: 0.5; font-size: 13px">${log.timestamp}</div>
+                    <div class="method ${log.method}">${log.method}</div>
+                    <div style="font-family: monospace">${log.path}</div>
+                    <div><span class="status s-${Math.floor(log.status/100)*100}">${log.status}</span></div>
+                    <div style="opacity: 0.5">${log.duration}ms</div>
+                </div>
+            `).join('');
+        }
+
+        function showDetails(log) {
+            document.getElementById('detailPath').innerText = `${log.method} ${log.path}`;
+            document.getElementById('reqBody').innerText = JSON.stringify(log.body, null, 2);
+            document.getElementById('resBody').innerText = JSON.stringify(log.response, null, 2);
+            document.getElementById('detailPanel').classList.add('open');
+        }
+
+        function closeDetails() {
+            document.getElementById('detailPanel').classList.remove('open');
+        }
+
+        async function fetchLogs() {
+            try {
+                const res = await fetch('/api/system/logs');
+                const logs = await res.json();
+                renderLogs(logs);
+            } catch (e) { console.error(e); }
+        }
+
+        async function clearLogs() {
+            await fetch('/api/system/logs', { method: 'DELETE' });
+            fetchLogs();
+        }
+
+        setInterval(fetchLogs, 2000);
+        fetchLogs();
+    </script>
+</body>
+</html>

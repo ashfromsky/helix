@@ -5,11 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Helix - The API that builds itself</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
 
         :root {
             --primary: #040556;
@@ -18,6 +15,7 @@
             --highlight: #C701AE;
             --dark: #0a0a0f;
             --darker: #050508;
+            --success: #00ff9d;
         }
 
         body {
@@ -28,13 +26,9 @@
             line-height: 1.6;
         }
 
-        /* Animated grid background */
         .grid-background {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            top: 0; left: 0; width: 100%; height: 100%;
             background-image:
                 linear-gradient(rgba(199, 1, 174, 0.03) 1px, transparent 1px),
                 linear-gradient(90deg, rgba(199, 1, 174, 0.03) 1px, transparent 1px);
@@ -51,7 +45,6 @@
             z-index: 1;
         }
 
-        /* Header - Minimal & Floating */
         header {
             padding: 40px 0;
             position: sticky;
@@ -62,11 +55,7 @@
             border-bottom: 1px solid rgba(199, 1, 174, 0.1);
         }
 
-        nav {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+        nav { display: flex; justify-content: space-between; align-items: center; }
 
         .logo {
             font-size: 28px;
@@ -74,27 +63,27 @@
             letter-spacing: -2px;
             color: #ffffff;
             position: relative;
+            text-decoration: none;
         }
 
         .logo::before {
             content: '';
             position: absolute;
-            width: 8px;
-            height: 8px;
+            width: 8px; height: 8px;
             background: var(--highlight);
             border-radius: 50%;
-            left: -20px;
-            top: 50%;
+            left: -20px; top: 50%;
             transform: translateY(-50%);
             box-shadow: 0 0 20px var(--highlight);
+            animation: pulse 2s infinite;
         }
 
-        .nav-links {
-            display: flex;
-            gap: 50px;
-            list-style: none;
-            align-items: center;
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
         }
+
+        .nav-links { display: flex; gap: 50px; list-style: none; align-items: center; }
 
         .nav-links a {
             color: rgba(255, 255, 255, 0.5);
@@ -106,19 +95,10 @@
             transition: color 0.3s;
         }
 
-        .nav-links a:hover {
-            color: var(--highlight);
-        }
+        .nav-links a:hover { color: var(--highlight); }
 
-        /* Hero - Asymmetric & Bold */
-        .hero {
-            padding: 180px 0 200px;
-            position: relative;
-        }
-
-        .hero-content {
-            max-width: 900px;
-        }
+        .hero { padding: 180px 0 200px; position: relative; }
+        .hero-content { max-width: 900px; }
 
         .hero-tag {
             display: inline-block;
@@ -159,11 +139,7 @@
             line-height: 1.7;
         }
 
-        .cta-group {
-            display: flex;
-            gap: 20px;
-            align-items: center;
-        }
+        .cta-group { display: flex; gap: 20px; align-items: center; }
 
         .btn {
             padding: 20px 50px;
@@ -174,6 +150,7 @@
             cursor: pointer;
             transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             letter-spacing: 0.5px;
+            display: inline-block;
         }
 
         .btn-primary {
@@ -183,10 +160,7 @@
             clip-path: polygon(0 0, 100% 0, 95% 100%, 0% 100%);
         }
 
-        .btn-primary:hover {
-            background: #ffffff;
-            color: var(--darker);
-        }
+        .btn-primary:hover { background: #ffffff; color: var(--darker); }
 
         .btn-ghost {
             background: transparent;
@@ -194,12 +168,8 @@
             border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
-        .btn-ghost:hover {
-            border-color: var(--highlight);
-            color: var(--highlight);
-        }
+        .btn-ghost:hover { border-color: var(--highlight); color: var(--highlight); }
 
-        /* Decorative element */
         .hero-decoration {
             position: absolute;
             right: -100px;
@@ -219,16 +189,12 @@
             border-radius: 50%;
         }
 
-        /* Features - Cards Grid */
         .features {
             padding: 200px 0;
             background: linear-gradient(180deg, transparent 0%, rgba(199, 1, 174, 0.02) 100%);
         }
 
-        .section-header {
-            margin-bottom: 100px;
-        }
-
+        .section-header { margin-bottom: 100px; }
         .section-label {
             font-size: 12px;
             letter-spacing: 3px;
@@ -259,25 +225,18 @@
             transition: background 0.3s;
         }
 
-        .feature-card:hover {
-            background: rgba(199, 1, 174, 0.03);
-        }
+        .feature-card:hover { background: rgba(199, 1, 174, 0.03); }
 
         .feature-card::before {
             content: '';
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 2px;
+            top: 0; left: 0; width: 100%; height: 2px;
             background: linear-gradient(90deg, transparent, var(--highlight), transparent);
             opacity: 0;
             transition: opacity 0.3s;
         }
 
-        .feature-card:hover::before {
-            opacity: 1;
-        }
+        .feature-card:hover::before { opacity: 1; }
 
         .feature-number {
             font-size: 14px;
@@ -299,31 +258,10 @@
             line-height: 1.8;
         }
 
-        /* Code Block - Terminal Style */
-        .code-section {
-            padding: 200px 0;
-        }
-
-        .code-wrapper {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 60px;
-            align-items: center;
-        }
-
-        .code-info h2 {
-            font-size: 48px;
-            font-weight: 900;
-            letter-spacing: -2px;
-            margin-bottom: 30px;
-        }
-
-        .code-info p {
-            font-size: 18px;
-            color: rgba(255, 255, 255, 0.4);
-            line-height: 1.8;
-            margin-bottom: 40px;
-        }
+        .code-section { padding: 200px 0; }
+        .code-wrapper { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; }
+        .code-info h2 { font-size: 48px; font-weight: 900; letter-spacing: -2px; margin-bottom: 30px; }
+        .code-info p { font-size: 18px; color: rgba(255, 255, 255, 0.4); line-height: 1.8; margin-bottom: 40px; }
 
         .terminal {
             background: #000000;
@@ -332,6 +270,7 @@
             font-family: 'Monaco', 'Courier New', monospace;
             font-size: 14px;
             position: relative;
+            box-shadow: 0 10px 50px rgba(199, 1, 174, 0.1);
         }
 
         .terminal-header {
@@ -343,145 +282,149 @@
             gap: 8px;
         }
 
-        .terminal-dot {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.2);
+        .terminal-dot { width: 12px; height: 12px; border-radius: 50%; background: rgba(255, 255, 255, 0.2); }
+        .terminal-dot:nth-child(1) { background: #ff5f56; }
+        .terminal-dot:nth-child(2) { background: #ffbd2e; }
+        .terminal-dot:nth-child(3) { background: #27c93f; }
+
+        .terminal-body { padding: 30px; line-height: 1.8; }
+        .cmd { color: var(--highlight); }
+        .output { color: rgba(255, 255, 255, 0.6); }
+        .comment { color: rgba(255, 255, 255, 0.3); }
+
+        .quickstart {
+            padding: 200px 0;
+            background: linear-gradient(180deg, rgba(199, 1, 174, 0.02) 0%, transparent 100%);
         }
 
-        .terminal-body {
-            padding: 30px;
-            line-height: 1.8;
+        .quickstart-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 40px;
+            margin-top: 60px;
         }
 
-        .cmd {
+        .quickstart-card {
+            background: rgba(10, 10, 15, 0.5);
+            border: 1px solid rgba(199, 1, 174, 0.1);
+            padding: 40px;
+            position: relative;
+        }
+
+        .quickstart-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 4px; height: 100%;
+            background: var(--highlight);
+        }
+
+        .quickstart-step {
+            font-size: 48px;
+            font-weight: 900;
+            color: var(--highlight);
+            opacity: 0.2;
+            margin-bottom: 20px;
+        }
+
+        .quickstart-card h3 { font-size: 24px; margin-bottom: 15px; letter-spacing: -1px; }
+        .quickstart-card p { color: rgba(255, 255, 255, 0.4); line-height: 1.7; margin-bottom: 20px; }
+
+        .quickstart-card pre {
+            background: #000;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-size: 13px;
+            color: var(--success);
+            border: 1px solid rgba(199, 1, 174, 0.1);
+        }
+
+        .providers { padding: 200px 0; }
+        .providers-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 2px;
+            background: rgba(199, 1, 174, 0.1);
+            margin-top: 60px;
+        }
+
+        .provider-card {
+            background: var(--darker);
+            padding: 40px 30px;
+            text-align: center;
+            transition: background 0.3s;
+        }
+
+        .provider-card:hover { background: rgba(199, 1, 174, 0.03); }
+        .provider-icon { font-size: 48px; margin-bottom: 20px; }
+        .provider-card h3 { font-size: 20px; margin-bottom: 10px; }
+        .provider-card p { color: rgba(255, 255, 255, 0.4); font-size: 14px; margin-bottom: 15px; }
+
+        .provider-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            background: rgba(199, 1, 174, 0.1);
+            border: 1px solid rgba(199, 1, 174, 0.3);
+            border-radius: 20px;
+            font-size: 11px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
             color: var(--highlight);
         }
 
-        .output {
-            color: rgba(255, 255, 255, 0.6);
-        }
-
-        .comment {
-            color: rgba(255, 255, 255, 0.3);
-        }
-
-        /* Stats - Minimal Counters */
         .stats {
             padding: 200px 0;
             border-top: 1px solid rgba(199, 1, 174, 0.1);
             border-bottom: 1px solid rgba(199, 1, 174, 0.1);
         }
 
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 80px;
-        }
-
-        .stat {
-            text-align: left;
-        }
-
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 80px; }
+        .stat { text-align: left; }
         .stat-number {
-            font-size: 72px;
-            font-weight: 900;
-            letter-spacing: -3px;
-            color: var(--highlight);
-            margin-bottom: 10px;
-            line-height: 1;
+            font-size: 72px; font-weight: 900; letter-spacing: -3px;
+            color: var(--highlight); margin-bottom: 10px; line-height: 1;
         }
-
         .stat-label {
-            font-size: 14px;
-            color: rgba(255, 255, 255, 0.4);
-            text-transform: uppercase;
-            letter-spacing: 1px;
+            font-size: 14px; color: rgba(255, 255, 255, 0.4);
+            text-transform: uppercase; letter-spacing: 1px;
         }
 
-        /* CTA Section */
-        .cta-section {
-            padding: 250px 0;
-            text-align: center;
-        }
-
+        .cta-section { padding: 250px 0; text-align: center; }
         .cta-section h2 {
-            font-size: 80px;
-            font-weight: 900;
-            letter-spacing: -4px;
-            margin-bottom: 60px;
-            line-height: 1;
+            font-size: 80px; font-weight: 900; letter-spacing: -4px;
+            margin-bottom: 60px; line-height: 1;
         }
 
-        /* Footer - Minimal */
-        footer {
-            padding: 80px 0 40px;
-            border-top: 1px solid rgba(199, 1, 174, 0.1);
-        }
-
-        .footer-grid {
-            display: grid;
-            grid-template-columns: 2fr 1fr 1fr 1fr;
-            gap: 80px;
-            margin-bottom: 80px;
-        }
-
-        .footer-brand {
-            max-width: 300px;
-        }
-
-        .footer-brand .logo {
-            margin-bottom: 20px;
-        }
-
-        .footer-brand p {
-            color: rgba(255, 255, 255, 0.3);
-            font-size: 14px;
-            line-height: 1.8;
-        }
-
+        footer { padding: 80px 0 40px; border-top: 1px solid rgba(199, 1, 174, 0.1); }
+        .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 80px; margin-bottom: 80px; }
+        .footer-brand { max-width: 300px; }
+        .footer-brand .logo { margin-bottom: 20px; }
+        .footer-brand p { color: rgba(255, 255, 255, 0.3); font-size: 14px; line-height: 1.8; }
         .footer-section h4 {
-            font-size: 12px;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            margin-bottom: 20px;
-            color: var(--highlight);
+            font-size: 12px; text-transform: uppercase; letter-spacing: 2px;
+            margin-bottom: 20px; color: var(--highlight);
         }
-
-        .footer-section ul {
-            list-style: none;
-        }
-
-        .footer-section li {
-            margin-bottom: 12px;
-        }
-
+        .footer-section ul { list-style: none; }
+        .footer-section li { margin-bottom: 12px; }
         .footer-section a {
-            color: rgba(255, 255, 255, 0.4);
-            text-decoration: none;
-            font-size: 14px;
-            transition: color 0.3s;
+            color: rgba(255, 255, 255, 0.4); text-decoration: none;
+            font-size: 14px; transition: color 0.3s;
         }
-
-        .footer-section a:hover {
-            color: var(--highlight);
-        }
+        .footer-section a:hover { color: var(--highlight); }
 
         .footer-bottom {
-            text-align: center;
-            padding-top: 40px;
+            text-align: center; padding-top: 40px;
             border-top: 1px solid rgba(199, 1, 174, 0.1);
-            color: rgba(255, 255, 255, 0.3);
-            font-size: 13px;
+            color: rgba(255, 255, 255, 0.3); font-size: 13px;
         }
 
-        /* Responsive */
         @media (max-width: 1200px) {
             h1 { font-size: 80px; letter-spacing: -4px; }
             .features-grid { grid-template-columns: repeat(2, 1fr); }
             .code-wrapper { grid-template-columns: 1fr; }
             .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .quickstart-grid { grid-template-columns: 1fr; }
+            .providers-grid { grid-template-columns: repeat(2, 1fr); }
         }
 
         @media (max-width: 768px) {
@@ -496,28 +439,28 @@
             .footer-grid { grid-template-columns: 1fr; gap: 40px; }
             .cta-section h2 { font-size: 48px; }
             .stats-grid { grid-template-columns: 1fr; gap: 40px; }
+            .providers-grid { grid-template-columns: 1fr; gap: 1px; }
         }
     </style>
 </head>
 <body>
     <div class="grid-background"></div>
 
-    <!-- Header -->
     <header>
         <div class="container">
             <nav>
-                <div class="logo">HELIX</div>
+                <a href="#" class="logo">HELIX</a>
                 <ul class="nav-links">
                     <li><a href="#features">Features</a></li>
-                    <li><a href="#docs">Docs</a></li>
-                    <li><a href="https://github.com">GitHub</a></li>
-                    <li><a href="#dashboard">Dashboard</a></li>
+                    <li><a href="#quickstart">Quick Start</a></li>
+                    <li><a href="/docs" target="_blank">Docs (Swagger)</a></li>
+                    <li><a href="/dashboard">Dashboard</a></li>
+                    <li><a href="https://github.com/ashfromsky/helix" target="_blank">GitHub</a></li>
                 </ul>
             </nav>
         </div>
     </header>
 
-    <!-- Hero -->
     <section class="hero">
         <div class="container">
             <div class="hero-content">
@@ -531,15 +474,14 @@
                     Helix generates realistic API responses automatically using AI.
                 </p>
                 <div class="cta-group">
-                    <a href="#" class="btn btn-primary">Get Started</a>
-                    <a href="#" class="btn btn-ghost">View on GitHub →</a>
+                    <a href="#quickstart" class="btn btn-primary">Get Started</a>
+                    <a href="https://github.com/ashfromsky/helix" target="_blank" class="btn btn-ghost">View on GitHub →</a>
                 </div>
             </div>
             <div class="hero-decoration"></div>
         </div>
     </section>
 
-    <!-- Features -->
     <section class="features" id="features">
         <div class="container">
             <div class="section-header">
@@ -549,57 +491,56 @@
             <div class="features-grid">
                 <div class="feature-card">
                     <div class="feature-number">01</div>
-                    <h3 class="feature-title">Ghost Mode</h3>
+                    <h3 class="feature-title">Zero Configuration</h3>
                     <p class="feature-description">
-                        AI generates realistic responses for non-existent endpoints.
-                        No configuration, no setup. Just make requests.
+                        No setup required. Start Helix and make requests to any endpoint.
+                        AI analyzes paths and generates realistic responses instantly.
                     </p>
                 </div>
                 <div class="feature-card">
                     <div class="feature-number">02</div>
-                    <h3 class="feature-title">Recorder Mode</h3>
-                    <p class="feature-description">
-                        Proxy to real backend and record all responses.
-                        Automatic fallback when services fail.
-                    </p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-number">03</div>
                     <h3 class="feature-title">Context Awareness</h3>
                     <p class="feature-description">
-                        Helix remembers your actions. Create a user,
+                        Helix remembers your actions within sessions. Create a user,
                         then list users—it returns what you created.
                     </p>
                 </div>
                 <div class="feature-card">
-                    <div class="feature-number">04</div>
-                    <h3 class="feature-title">Chaos Testing</h3>
+                    <div class="feature-number">03</div>
+                    <h3 class="feature-title">Smart Data</h3>
                     <p class="feature-description">
-                        Simulate production failures: random errors, latency spikes,
-                        timeouts. Build resilient applications.
+                        Generates realistic data: proper names, valid emails,
+                        correct dates, professional IDs. Your demos look real.
+                    </p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-number">04</div>
+                    <h3 class="feature-title">Multiple AI Providers</h3>
+                    <p class="feature-description">
+                        Choose from DeepSeek, Groq, Ollama, or built-in demo mode.
+                        Free tiers available with generous rate limits.
                     </p>
                 </div>
                 <div class="feature-card">
                     <div class="feature-number">05</div>
-                    <h3 class="feature-title">Smart Data</h3>
+                    <h3 class="feature-title">Chaos Engineering</h3>
                     <p class="feature-description">
-                        Generates realistic data: proper names, valid emails,
-                        correct dates. Your demos look professional.
+                        Simulate production failures: random errors, latency spikes,
+                        timeouts. Build resilient applications from day one.
                     </p>
                 </div>
                 <div class="feature-card">
                     <div class="feature-number">06</div>
-                    <h3 class="feature-title">OpenAPI Ready</h3>
+                    <h3 class="feature-title">Redis Caching</h3>
                     <p class="feature-description">
-                        Import your OpenAPI schema. Helix generates responses
-                        that match your specification perfectly.
+                        Lightning-fast responses with intelligent caching.
+                        Session-aware storage keeps your data consistent.
                     </p>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Code Example -->
     <section class="code-section">
         <div class="container">
             <div class="code-wrapper">
@@ -607,9 +548,10 @@
                     <h2>Zero configuration required</h2>
                     <p>
                         Start Helix, make any request to any endpoint.
-                        AI analyzes your request and generates a realistic response instantly.
+                        AI analyzes your request structure and generates
+                        a realistic response that matches REST conventions.
                     </p>
-                    <a href="#" class="btn btn-ghost">Read Documentation →</a>
+                    <a href="/docs" target="_blank" class="btn btn-ghost">Interactive API Docs →</a>
                 </div>
                 <div class="terminal">
                     <div class="terminal-header">
@@ -618,10 +560,10 @@
                         <div class="terminal-dot"></div>
                     </div>
                     <div class="terminal-body">
-<span class="comment"># Start Helix</span>
-<span class="cmd">$ docker run -p 8080:8080 helix/helix</span>
+<span class="comment"># Start Helix with Docker</span>
+<span class="cmd">$ docker-compose up</span>
 
-<span class="comment"># Make any request</span>
+<span class="comment"># Make any request - no setup needed</span>
 <span class="cmd">$ curl http://localhost:8080/api/users</span>
 
 <span class="output">{
@@ -630,54 +572,124 @@
       "id": "usr_a1b2c3",
       "name": "Sarah Chen",
       "email": "sarah@company.com",
+      "username": "schen",
       "role": "developer",
+      "status": "active",
       "created_at": "2024-12-10T14:30:00Z"
     }
-  ]
+  ],
+  "total": 3,
+  "page": 1,
+  "per_page": 10
 }</span>
 
-<span class="comment"># No mock files. No configuration. Magic.</span>
+<span class="comment"># No mock files. No configuration. Pure magic.</span>
                     </div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Stats -->
+    <section class="quickstart" id="quickstart">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-label">Quick Start</div>
+                <h2 class="section-title">Up and running in 60 seconds</h2>
+            </div>
+            <div class="quickstart-grid">
+                <div class="quickstart-card">
+                    <div class="quickstart-step">01</div>
+                    <h3>Clone & Setup</h3>
+                    <p>Clone the repository and run the setup script. It handles everything automatically.</p>
+                    <pre>git clone https://github.com/ashfromsky/helix
+cd helix
+./setup.sh</pre>
+                </div>
+                <div class="quickstart-card">
+                    <div class="quickstart-step">02</div>
+                    <h3>Start Services</h3>
+                    <p>Launch Redis and Helix using Docker Compose. Works on any platform.</p>
+                    <pre>docker-compose up</pre>
+                </div>
+                <div class="quickstart-card">
+                    <div class="quickstart-step">03</div>
+                    <h3>Make Requests</h3>
+                    <p>Hit any endpoint. Helix generates realistic responses automatically.</p>
+                    <pre>curl localhost:8080/api/products
+# Instant realistic JSON!</pre>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="providers">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-label">AI Providers</div>
+                <h2 class="section-title">Choose your intelligence layer</h2>
+            </div>
+            <div class="providers-grid">
+                <div class="provider-card">
+                    <div class="provider-icon">🎭</div>
+                    <h3>Demo Mode</h3>
+                    <p>Template-based generation using Faker library</p>
+                    <span class="provider-badge">Default</span>
+                </div>
+                <div class="provider-card">
+                    <div class="provider-icon">🧠</div>
+                    <h3>DeepSeek</h3>
+                    <p>Via OpenRouter API with free tier available</p>
+                    <span class="provider-badge">500/day</span>
+                </div>
+                <div class="provider-card">
+                    <div class="provider-icon">⚡</div>
+                    <h3>Groq</h3>
+                    <p>Ultra-fast LPU inference with generous limits</p>
+                    <span class="provider-badge">14.4K/day</span>
+                </div>
+                <div class="provider-card">
+                    <div class="provider-icon">🏠</div>
+                    <h3>Ollama</h3>
+                    <p>Run AI models locally on your machine</p>
+                    <span class="provider-badge">Offline</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <section class="stats">
         <div class="container">
             <div class="stats-grid">
                 <div class="stat">
-                    <div class="stat-number">{{ stars|default('2.4K') }}</div>
-                    <div class="stat-label">GitHub Stars</div>
-                </div>
-                <div class="stat">
-                    <div class="stat-number">{{ downloads|default('120K') }}</div>
-                    <div class="stat-label">Downloads</div>
-                </div>
-                <div class="stat">
-                    <div class="stat-number">{{ users|default('850+') }}</div>
-                    <div class="stat-label">Active Users</div>
-                </div>
-                <div class="stat">
-                    <div class="stat-number">{{ response_time|default('< 80ms') }}</div>
+                    <div class="stat-number">< 80ms</div>
                     <div class="stat-label">Response Time</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-number">100%</div>
+                    <div class="stat-label">REST Compatible</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-number">∞</div>
+                    <div class="stat-label">Endpoints Supported</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-number">0</div>
+                    <div class="stat-label">Config Files Needed</div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- CTA -->
     <section class="cta-section">
         <div class="container">
             <h2>Ready to ship<br>faster?</h2>
             <div class="cta-group" style="justify-content: center;">
-                <a href="#" class="btn btn-primary">Start Using Helix</a>
+                <a href="#quickstart" class="btn btn-primary">Start Using Helix</a>
+                <a href="/docs" class="btn btn-ghost">Interactive Docs →</a>
             </div>
         </div>
     </section>
 
-    <!-- Footer -->
     <footer>
         <div class="container">
             <div class="footer-grid">
@@ -691,27 +703,25 @@
                 <div class="footer-section">
                     <h4>Product</h4>
                     <ul>
-                        <li><a href="#">Features</a></li>
-                        <li><a href="#">Changelog</a></li>
-                        <li><a href="#">Roadmap</a></li>
+                        <li><a href="#features">Features</a></li>
+                        <li><a href="#quickstart">Quick Start</a></li>
+                        <li><a href="/health" target="_blank">System Health</a></li>
+                        <li><a href="https://github.com/ashfromsky/helix" target="_blank">Changelog</a></li>
                     </ul>
                 </div>
                 <div class="footer-section">
                     <h4>Resources</h4>
                     <ul>
-                        <li><a href="#">Documentation</a></li>
-                        <li><a href="#">API Reference</a></li>
-                        <li><a href="#">Examples</a></li>
-                        <li><a href="#">Blog</a></li>
+                        <li><a href="/docs" target="_blank">API Documentation</a></li>
+                        <li><a href="https://github.com/ashfromsky/helix" target="_blank">GitHub</a></li>
+                        <li><a href="https://github.com/ashfromsky/helix/issues" target="_blank">Report Issue</a></li>
                     </ul>
                 </div>
                 <div class="footer-section">
                     <h4>Community</h4>
                     <ul>
-                        <li><a href="#">GitHub</a></li>
-                        <li><a href="#">Discord</a></li>
-                        <li><a href="#">Twitter</a></li>
-                        <li><a href="#">Reddit</a></li>
+                        <li><a href="https://github.com/ashfromsky/helix" target="_blank">Star on GitHub</a></li>
+                        <li><a href="/status" target="_blank">Server Status</a></li>
                     </ul>
                 </div>
             </div>
