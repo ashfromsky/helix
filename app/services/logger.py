@@ -41,6 +41,14 @@ class LoggerService:
             logger.error(f"Failed to fetch logs: {e}")
             return []
 
+    def get_raw_logs_as_string(self):
+        logs_raw = self.redis.lrange(self.log_key, 0, -1)
+        return "[" + ",".join(logs_raw) + "]"
+
+    def get_raw_logs_as_string_wlimit(self, limit: int = 50):
+        logs_raw = self.redis.lrange(self.log_key, 0, limit - 1)
+        return "[" + ",".join(logs_raw) + "]"
+
     def clear_logs(self):
         self.redis.delete(self.log_key)
 

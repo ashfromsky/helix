@@ -21,7 +21,8 @@ class BaseAIProvider(ABC):
             method: str,
             path: str,
             body: Optional[Dict] = None,
-            context: Optional[list] = None
+            context: Optional[list] = None,
+            system_prompt: Optional[str] = None
     ) -> Dict[str, Any]:
         """
         Generate mock API response based on request parameters

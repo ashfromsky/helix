@@ -46,8 +46,8 @@ class AIManager:
             logger.error(f"Failed to init provider {self.provider_name}: {e}")
             return DemoProvider()
 
-    async def generate_response(self, method: str, path: str, body: dict = None, context: list = None) -> dict:
-        return await self.provider.generate_response(method, path, body, context)
+    async def generate_response(self, method: str, path: str, body: dict = None, context: list = None, system_prompt: str = None) -> dict:
+        return await self.provider.generate_response(method, path, body, context, system_prompt=system_prompt)
 
     def get_status(self) -> dict:
         """

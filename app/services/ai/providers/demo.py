@@ -1,8 +1,3 @@
-"""
-Demo AI Provider - Template-based mock generation
-No API key required, generates realistic responses using Faker
-"""
-
 from typing import Dict, Any, Optional
 import json
 from datetime import datetime
@@ -12,10 +7,6 @@ fake = Faker()
 
 
 class DemoProvider:
-    """
-    Template-based AI provider that generates realistic mock responses
-    without requiring external AI APIs. Perfect for development and testing.
-    """
 
     def __init__(self):
         self.fake = Faker()
@@ -26,20 +17,10 @@ class DemoProvider:
             method: str,
             path: str,
             body: Optional[Dict] = None,
-            context: Optional[list] = None
+            context: Optional[list] = None,
+            system_prompt: Optional[str] = None
     ) -> Dict[str, Any]:
-        """
-        Generate mock API response based on HTTP method and path
 
-        Args:
-            method: HTTP method (GET, POST, PUT, PATCH, DELETE)
-            path: Request path (e.g., /api/v1/users)
-            body: Request body (for POST/PUT/PATCH)
-            context: Previous requests context for consistency
-
-        Returns:
-            Dict with status_code, headers, and body
-        """
         resource = self._extract_resource(path)
 
         if method == "GET":
@@ -60,31 +41,17 @@ class DemoProvider:
         return self._generate_fallback()
 
     def _extract_resource(self, path: str) -> str:
-        """
-        Extract resource name from path
-        /api/v1/users/123 -> users
-        /orders -> orders
-        """
         parts = path.strip("/").split("/")
-
-        filtered_parts = [
-            part for part in parts
-            if part not in ["api", "v1", "v2", "v3"] and not part.isdigit()
-        ]
-
-        return filtered_parts[-1] if filtered_parts else "items"
+        for part in parts:
+            if not part.isdigit() and part not in ["api", "v1", "v2"]:
+                return part
+        return "items"
 
     def _is_collection(self, path: str) -> bool:
-        """
-        Check if path points to collection or single resource
-        /users -> True (collection)
-        /users/123 -> False (single)
-        """
         parts = path.strip("/").split("/")
         return not parts[-1].isdigit() and not self._looks_like_id(parts[-1])
 
     def _looks_like_id(self, part: str) -> bool:
-        """Check if string looks like an ID (uuid, short id, etc)"""
         if part.isdigit():
             return True
         if len(part) > 20 and "-" in part:
@@ -94,8 +61,6 @@ class DemoProvider:
         return False
 
     def _generate_collection(self, resource: str, context: Optional[list] = None) -> Dict:
-        """Generate response for collection GET request"""
-
         created_items = self._get_created_from_context(resource, context)
 
         if created_items:
@@ -117,7 +82,6 @@ class DemoProvider:
         }
 
     def _generate_single(self, resource: str, path: str, context: Optional[list] = None) -> Dict:
-        """Generate response for single resource GET request"""
         item_id = path.strip("/").split("/")[-1]
 
         if context:
@@ -138,7 +102,6 @@ class DemoProvider:
         }
 
     def _generate_created(self, resource: str, body: Optional[Dict], context: Optional[list] = None) -> Dict:
-        """Generate response for POST (create) request"""
         item = self._generate_item(resource, self.fake.uuid4()[:8])
 
         if body:
@@ -159,7 +122,6 @@ class DemoProvider:
         }
 
     def _generate_updated(self, resource: str, body: Optional[Dict], path: str, context: Optional[list] = None) -> Dict:
-        """Generate response for PUT/PATCH (update) request"""
         item_id = path.strip("/").split("/")[-1]
 
         existing_item = None
@@ -186,7 +148,6 @@ class DemoProvider:
         }
 
     def _generate_deleted(self, path: str) -> Dict:
-        """Generate response for DELETE request"""
         return {
             "status_code": 204,
             "headers": {"Content-Type": "application/json"},
@@ -194,10 +155,6 @@ class DemoProvider:
         }
 
     def _generate_item(self, resource: str, item_id: Any) -> Dict:
-        """
-        Generate a single item based on resource type
-        Uses realistic data based on common resource patterns
-        """
         base = {
             "id": str(item_id),
             "created_at": self.fake.iso8601(),
@@ -310,7 +267,6 @@ class DemoProvider:
         return base
 
     def _generate_fallback(self) -> Dict:
-        """Generate generic fallback response"""
         return {
             "status_code": 200,
             "headers": {"Content-Type": "application/json"},
@@ -322,7 +278,6 @@ class DemoProvider:
         }
 
     def _get_created_from_context(self, resource: str, context: Optional[list]) -> list:
-        """Extract created items from context for consistency"""
         if not context:
             return []
 

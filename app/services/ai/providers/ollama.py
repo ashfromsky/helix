@@ -1,9 +1,3 @@
-"""
-Ollama AI Provider (Local)
-Runs AI models locally on your machine
-Free, no API key needed, works offline
-"""
-
 import httpx
 from typing import Dict, Any, Optional
 import logging
@@ -16,12 +10,6 @@ logger = logging.getLogger(__name__)
 class OllamaProvider(BaseAIProvider):
     """
     Ollama provider for local AI models
-
-    Setup:
-    1. Install Ollama: https://ollama.com/
-    2. Pull a model: ollama pull llama3
-    3. Server usually runs at http://localhost:11434
-    4. Set HELIX_OLLAMA_HOST and HELIX_OLLAMA_MODEL in .env
     """
 
     def __init__(
@@ -38,16 +26,21 @@ class OllamaProvider(BaseAIProvider):
             method: str,
             path: str,
             body: Optional[Dict] = None,
-            context: Optional[list] = None
+            context: Optional[list] = None,
+            system_prompt: str = None
     ) -> Dict[str, Any]:
         """
         Generate response using local Ollama model
         """
         try:
-            system_prompt = self._get_system_prompt()
+            if system_prompt is None:
+                sys_prompt_content = self._get_system_prompt()
+            else:
+                sys_prompt_content = system_prompt
+
             user_prompt = self._build_user_prompt(method, path, body, context)
 
-            full_prompt = f"{system_prompt}\n\n{user_prompt}"
+            full_prompt = f"{sys_prompt_content}\n\n{user_prompt}"
 
             async with httpx.AsyncClient(timeout=self.timeout) as client:
                 response = await client.post(
@@ -158,7 +151,6 @@ class OllamaProvider(BaseAIProvider):
     async def pull_model(self, model_name: str) -> bool:
         """
         Pull/download a model (if Ollama supports it via API)
-        Note: This might not work - user should use CLI: ollama pull <model>
         """
         try:
             async with httpx.AsyncClient(timeout=300) as client:

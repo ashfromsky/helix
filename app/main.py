@@ -10,6 +10,7 @@ from fastapi.templating import Jinja2Templates
 from app.routes.ui import default as ui_routes
 from app.routes.ui import health
 from app.routes.ui import dashboard
+from app.routes.additional.openapi_generate_router import router as openapi_router
 from app.routes.requestbased import catch_all
 from app.database.core.config import settings
 from app.services.ai.config import ai_settings
@@ -25,10 +26,15 @@ logger = logging.getLogger("uvicorn.error")
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
+# system routes
 app.include_router(health.router, tags=["Health"])
 app.include_router(ui_routes.router, tags=["UI"])
 app.include_router(dashboard.router, tags=["Dashboard"])
 
+# additional routes
+app.include_router(openapi_router, tags=["OpenAPI Generation"])
+
+# catch-all route
 app.include_router(catch_all.router, tags=["Mocking"])
 
 @app.middleware("http")

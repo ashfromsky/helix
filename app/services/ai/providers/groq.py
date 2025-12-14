@@ -44,13 +44,16 @@ class GroqProvider(BaseAIProvider):
             method: str,
             path: str,
             body: Optional[Dict] = None,
-            context: Optional[list] = None
+            context: Optional[list] = None,
+            system_prompt: str = None
     ) -> Dict[str, Any]:
         """
         Generate response using Groq's fast inference
         """
         try:
-            system_prompt = self._get_system_prompt()
+            if system_prompt is None: sys_prompt_content = self._get_system_prompt()
+            else: sys_prompt_content = system_prompt
+
             user_prompt = self._build_user_prompt(method, path, body, context)
 
             async with httpx.AsyncClient(timeout=self.timeout) as client:
@@ -63,7 +66,7 @@ class GroqProvider(BaseAIProvider):
                     json={
                         "model": self.model,
                         "messages": [
-                            {"role": "system", "content": system_prompt},
+                            {"role": "system", "content": sys_prompt_content},
                             {"role": "user", "content": user_prompt}
                         ],
                         "temperature": ai_settings.AI_TEMPERATURE,
