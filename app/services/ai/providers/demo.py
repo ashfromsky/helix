@@ -21,6 +21,9 @@ class DemoProvider:
             system_prompt: Optional[str] = None
     ) -> Dict[str, Any]:
 
+        if body and body.get("task") == "generate_openapi_spec":
+            return self._generate_openapi_spec(body.get("logs", []))
+
         resource = self._extract_resource(path)
 
         if method == "GET":
@@ -39,6 +42,104 @@ class DemoProvider:
             return self._generate_deleted(path)
 
         return self._generate_fallback()
+
+    def _generate_openapi_spec(self, logs: list) -> Dict[str, Any]:
+        """Generate OpenAPI 3.0 spec from request logs"""
+
+        if not logs:
+            return {
+                "status_code": 404,
+                "headers": {"Content-Type": "application/json"},
+                "body": {
+                    "error": "No logs available",
+                    "message": "Make some API requests first"
+                }
+            }
+
+        paths = {}
+        for log in logs:
+            path = log.get("path", "")
+            method = log.get("method", "GET").lower()
+            status = log.get("status", 200)
+            response_body = log.get("response", {})
+
+            normalized_path = self._normalize_path(path)
+
+            if normalized_path not in paths:
+                paths[normalized_path] = {}
+
+            if method not in paths[normalized_path]:
+                paths[normalized_path][method] = {
+                    "summary": f"{method.upper()} {normalized_path}",
+                    "responses": {
+                        str(status): {
+                            "description": "Success",
+                            "content": {
+                                "application/json": {
+                                    "schema": self._infer_schema(response_body)
+                                }
+                            }
+                        }
+                    }
+                }
+
+        spec = {
+            "openapi": "3.0.0",
+            "info": {
+                "title": "Helix Generated API",
+                "version": "1.0.0",
+                "description": f"Auto-generated from {len(logs)} request logs"
+            },
+            "servers": [
+                {"url": "http://localhost:8080", "description": "Local server"}
+            ],
+            "paths": paths
+        }
+
+        return {
+            "status_code": 200,
+            "headers": {"Content-Type": "application/json"},
+            "body": spec
+        }
+
+    def _normalize_path(self, path: str) -> str:
+        """Convert /users/123 to /users/{id}"""
+        parts = path.strip("/").split("/")
+        normalized = []
+
+        for part in parts:
+            if part.isdigit() or self._looks_like_id(part):
+                normalized.append("{id}")
+            else:
+                normalized.append(part)
+
+        return "/" + "/".join(normalized)
+
+    def _infer_schema(self, data: Any) -> Dict:
+        """Infer JSON schema from data"""
+        if isinstance(data, dict):
+            properties = {}
+            for key, value in data.items():
+                properties[key] = self._infer_schema(value)
+            return {
+                "type": "object",
+                "properties": properties
+            }
+        elif isinstance(data, list):
+            if data:
+                return {
+                    "type": "array",
+                    "items": self._infer_schema(data[0])
+                }
+            return {"type": "array", "items": {}}
+        elif isinstance(data, bool):
+            return {"type": "boolean"}
+        elif isinstance(data, int):
+            return {"type": "integer"}
+        elif isinstance(data, float):
+            return {"type": "number"}
+        else:
+            return {"type": "string"}
 
     def _extract_resource(self, path: str) -> str:
         parts = path.strip("/").split("/")
