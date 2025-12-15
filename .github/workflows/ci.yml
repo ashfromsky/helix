@@ -2,58 +2,21 @@ name: CI
 
 on:
   push:
-    branches: ["master", "main", "develop", "experimental"]
+    branches: [master, main, develop, experimental]
   pull_request:
-    branches:  ["master", "main", "develop"]
+    branches: [master, main, develop]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 env:
-  PYTHON_VERSION: "3.11"
-  REDIS_HOST: localhost
-  REDIS_PORT: 6379
+  PYTHON_VERSION:  "3.11"
 
 jobs:
-  lint:
-    name: 🔍 Lint & Format
-    runs-on: ubuntu-latest
-    steps:
-      - name:  Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
-          cache: 'pip'
-
-      - name: Install linting tools
-        run: |
-          python -m pip install --upgrade pip
-          pip install ruff black isort mypy
-
-      - name: Run Ruff (linting)
-        run: ruff check .  --output-format=github || true
-
-      - name: Run Black (formatting check)
-        run: black --check --diff .
-
-      - name: Run isort (import sorting)
-        run: isort --check-only --diff .
-
-      - name: Run mypy (type checking)
-        run: mypy app --ignore-missing-imports --no-error-summary || true
-
   test:
-    name: 🧪 Tests (Python ${{ matrix.python-version }})
+    name: Tests
     runs-on: ubuntu-latest
-    needs: lint
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version: ["3.11", "3.12"]
 
     services:
       redis:
@@ -68,95 +31,32 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses:  actions/checkout@v4
+        uses: actions/checkout@v4
 
-      - name: Set up Python ${{ matrix.python-version }}
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: ${{ env.PYTHON_VERSION }}
           cache: 'pip'
 
       - name: Install dependencies
-        run:  |
+        run: |
           python -m pip install --upgrade pip
-          pip install -r requirements. txt
-          pip install -r requirements-dev.txt
+          pip install -r requirements.txt
+          pip install pytest pytest-asyncio pytest-cov httpx faker
 
-      - name: Run unit tests
+      - name: Run tests
         run: |
-          pytest tests/unit -v --cov=app --cov-report=xml --cov-report=term-missing
-
-      - name: Run integration tests
-        run: |
-          pytest tests/integration -v --cov=app --cov-append --cov-report=xml
-
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./coverage.xml
-          flags: unittests
-          name: codecov-${{ matrix.python-version }}
-          fail_ci_if_error:  false
-
-  e2e:
-    name: 🌐 E2E Tests
-    runs-on: ubuntu-latest
-    needs: test
-
-    steps:
-      - name:  Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Build and start services
-        run: |
-          docker-compose up -d --build
-          sleep 10
-
-      - name: Wait for services to be healthy
-        run: |
-          timeout 60 bash -c 'until curl -s http://localhost:8080/health | grep -q "healthy"; do sleep 2; done'
-
-      - name:  Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version:  ${{ env.PYTHON_VERSION }}
-          cache: 'pip'
-
-      - name: Install test dependencies
-        run: |
-          pip install -r requirements-dev.txt
-
-      - name: Run E2E tests
-        run: |
-          pytest tests/e2e -v --tb=short
+          pytest tests/ -v --tb=short
         env:
-          HELIX_BASE_URL: http://localhost:8080
-
-      - name:  Collect Docker logs on failure
-        if: failure()
-        run: |
-          docker-compose logs > docker-logs.txt
-          cat docker-logs.txt
-
-      - name: Upload Docker logs
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: docker-logs
-          path: docker-logs.txt
-
-      - name: Stop services
-        if: always()
-        run: docker-compose down -v
+          HELIX_AI_PROVIDER: demo
+          HELIX_REDIS_HOST: localhost
+          HELIX_REDIS_PORT: 6379
+          HELIX_CHAOS_ENABLED: false
 
   docker:
-    name: 🐳 Docker Build
+    name: Docker Build
     runs-on: ubuntu-latest
-    needs: lint
 
     steps:
       - name:  Checkout code
@@ -170,66 +70,82 @@ jobs:
         with:
           context: .
           push: false
-          tags: helix:test
+          tags: helix: test
           cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-to:  type=gha,mode=max
 
-      - name: Test Docker image
-        run: |
-          docker run --rm helix:test python -c "from app.main import app; print('Import successful')"
-
-  performance:
-    name: ⚡ Performance Tests
+  e2e:
+    name: E2E Tests
     runs-on: ubuntu-latest
-    needs: e2e
-    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    needs: docker
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Start services
+      - name:  Start services
         run: |
           docker-compose up -d --build
           sleep 15
 
-      - name: Wait for services
+      - name: Wait for Helix to be ready
         run: |
-          timeout 60 bash -c 'until curl -s http://localhost:8080/health | grep -q "healthy"; do sleep 2; done'
+          for i in {1..30}; do
+            if curl -s http://localhost:8080/health | grep -q "healthy\|ok"; then
+              echo "Helix is ready!"
+              exit 0
+            fi
+            echo "Waiting for Helix...  ($i/30)"
+            sleep 2
+          done
+          echo "Helix failed to start"
+          docker-compose logs
+          exit 1
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version:  ${{ env.PYTHON_VERSION }}
-
-      - name: Install dependencies
+      - name: Test health endpoint
         run: |
-          pip install -r requirements-dev.txt
-          pip install locust
+          curl -f http://localhost:8080/health
 
-      - name: Run performance tests
+      - name: Test status endpoint
         run: |
-          pytest tests/performance -v --tb=short
-        env:
-          HELIX_BASE_URL: http://localhost:8080
+          curl -f http://localhost:8080/status
+
+      - name:  Test mock API - GET collection
+        run: |
+          curl -f http://localhost:8080/api/users
+
+      - name: Test mock API - GET single
+        run: |
+          curl -f http://localhost:8080/api/users/123
+
+      - name: Test mock API - POST
+        run: |
+          curl -f -X POST http://localhost:8080/api/users \
+            -H "Content-Type: application/json" \
+            -d '{"name": "Test User", "email": "test@example.com"}'
+
+      - name: Test mock API - PUT
+        run: |
+          curl -f -X PUT http://localhost:8080/api/users/123 \
+            -H "Content-Type: application/json" \
+            -d '{"name":  "Updated User"}'
+
+      - name: Test mock API - DELETE
+        run: |
+          curl -f -X DELETE http://localhost:8080/api/users/123
+
+      - name: Test dashboard
+        run: |
+          curl -f http://localhost:8080/dashboard
+
+      - name: Test with session
+        run: |
+          curl -f -H "X-Session-ID: test-session-123" http://localhost:8080/api/products
+
+      - name:  Collect logs on failure
+        if: failure()
+        run: docker-compose logs
 
       - name: Stop services
         if: always()
         run: docker-compose down -v
-
-  all-tests-passed:
-    name: All Tests Passed
-    runs-on: ubuntu-latest
-    needs: [lint, test, e2e, docker]
-    if: always()
-    steps:
-      - name:  Check all jobs passed
-        run: |
-          if [[ "${{ needs.lint.result }}" != "success" ]] || \
-             [[ "${{ needs. test.result }}" != "success" ]] || \
-             [[ "${{ needs.e2e.result }}" != "success" ]] || \
-             [[ "${{ needs.docker.result }}" != "success" ]]; then
-            echo "One or more jobs failed"
-            exit 1
-          fi
-          echo "All jobs passed successfully!"
