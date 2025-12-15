@@ -27,7 +27,7 @@
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/helix.git
+git clone https://github.com/ashfromsky/helix.git
 cd helix
 
 # Start with Docker Compose
