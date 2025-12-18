@@ -11,15 +11,37 @@
 
 **Helix** is an AI-powered API mocking server that generates realistic responses on the fly. Stop writing mock data manually—let AI do it for you.
 
-## Features
+---
 
-- **Zero Configuration** - Make requests to any endpoint, get instant realistic responses
-- **AI-Powered** - Supports DeepSeek, Groq, Ollama, or built-in template mode
-- **Context Awareness** - Remembers your actions across requests for consistency
-- **Smart Data Generation** - Creates realistic names, emails, dates, and IDs
-- **Chaos Engineering** - Simulate failures, latency, and errors for resilience testing
-- **Redis Caching** - Fast response times with intelligent caching
-- **Docker Ready** - Production-ready containerized deployment
+## Why Helix?
+
+![Who needs Helix](assets/images/who-needs-helix.png)
+
+### Frontend Developers
+Stop waiting for the backend team. Unblock your UI development and build features against realistic, dynamic API responses immediately.
+
+### QA Engineers
+Test the unpredictable. Easily generate edge cases, error states, and complex data structures without agonizing database seeding.
+
+### MVP Builders & Startups
+Focus on the product, not the plumbing. Demonstrate a fully functional app experience to investors or users before writing a single line of backend code.
+
+---
+
+## Key Features
+
+![Features Overview](assets/images/features-overview.png)
+
+### AI-Powered Core
+Responses are generated on the fly by AI. No hardcoded stubs or generic lorem ipsum—data is always unique, logical, and diverse.
+
+### Zero Configuration
+Plug & Play. Forget about defining schemas, models, or endless YAML config files. Just run Helix and hit any endpoint you can imagine. The system adapts automatically.
+
+### Deep Context Understanding
+Semantic Awareness: Helix grasps the semantics of your URLs and payloads. If you request `/api/v1/nuclear-reactor/status`, you'll get critical logs and pressure metrics—not a random list of users.
+
+---
 
 ## Quick Start
 
@@ -50,27 +72,128 @@ source venv/bin/activate
 uvicorn app.main:app --reload --port 8080
 ```
 
-## Usage
+---
 
-### Make Any Request
+## Usage Examples
+
+### Creating a User (POST)
+
+![POST Example](assets/images/post-example.png)
+
+Send empty fields in your request body, and Helix automatically fills them with realistic, contextually appropriate data:
 
 ```bash
-# GET request - returns collection
-curl http://localhost:8080/api/users
-
-# GET single item
-curl http://localhost:8080/api/users/123
-
-# POST request - creates resource
-curl -X POST http://localhost:8080/api/products \
+curl -X POST http://localhost:8080/api/v1/users \
   -H "Content-Type: application/json" \
-  -d '{"name": "Laptop", "price": 1299.99}'
-
-# Context-aware - lists what you created
-curl http://localhost:8080/api/products
+  -d '{
+    "id": "",
+    "name": "",
+    "secret_question": "",
+    "hashed_password": ""
+  }'
 ```
 
-### Session Management
+**Response:**
+```json
+{
+  "id": "usr_9Xk2LmNpQr",
+  "name": "Emily Johnson",
+  "secret_question": "What was the name of your first pet?",
+  "hashed_password": "$2b$12$eXaMpI3RtYkL9qZ8Jk2NmO",
+  "created_at": "2023-10-05T14:30:00Z",
+  "updated_at": "2023-10-05T14:30:00Z"
+}
+```
+
+### Fetching Data (GET)
+
+![GET Example](assets/images/get-example.png)
+
+Request any resource without prior setup:
+
+```bash
+curl http://localhost:8080/api/v1/cities
+```
+
+**Response:**
+```json
+{
+  "id": "cty_9Xm1",
+  "name": "New York",
+  "country": "USA",
+  "timezone": "America/New_York"
+}
+```
+
+### Complex Domain-Specific Requests
+
+![Complex Request Example](assets/images/complex-request.png)
+
+Helix understands context and generates domain-appropriate responses:
+
+```bash
+curl -X POST http://localhost:8080/api/v1/net-security/diagnostics \
+  -H "Content-Type: application/json" \
+  -d '{
+    "system_id": "HELIX-CORE-09",
+    "alert_level": "CRITICAL",
+    "timestamp": "2077-12-18T23:45:00Z",
+    "logs": [
+      "WARN: Unauthorized access attempt detected at Port 443",
+      "ERR: Encryption key rotation failed",
+      "INFO: Unidentified neural signature detected in Sector 7"
+    ],
+    "request": "Provide a full damage assessment, probability of data breach, and suggested countermeasures."
+  }'
+```
+
+**Response:**
+```json
+{
+  "diagnostic_id": "diag_Z9XyWqTnLm",
+  "system_id": "HELIX-CORE-09",
+  "alert_level": "CRITICAL",
+  "timestamp": "2077-12-18T23:45:00Z",
+  "logs": [
+    "WARN: Unauthorized access attempt detected at Port 443",
+    "ERR: Encryption key rotation failed",
+    "INFO: Unidentified neural signature detected in Sector 7"
+  ],
+  "damage_assessment": {
+    "network_integrity": 35,
+    "data_loss": "High",
+    "breach_probability": 87.5,
+    "affected_systems": [
+      "Sector 7",
+      "Port 443"
+    ]
+  },
+  "countermeasures": [
+    "Initiate immediate lockdown of Sector 7",
+    "Deploy intrusion detection AI at Port 443",
+    "Force reissue of all encryption keys",
+    "Activate neural firewall protocols"
+  ],
+  "status": "Diagnostic report generated",
+  "created_at": "2077-12-18T23:45:30Z"
+}
+```
+
+---
+
+## Features
+
+- **Zero Configuration** - Make requests to any endpoint, get instant realistic responses
+- **AI-Powered** - Supports DeepSeek, Groq, Ollama, or built-in template mode
+- **Context Awareness** - Remembers your actions across requests for consistency
+- **Smart Data Generation** - Creates realistic names, emails, dates, and IDs
+- **Chaos Engineering** - Simulate failures, latency, and errors for resilience testing
+- **Redis Caching** - Fast response times with intelligent caching
+- **Docker Ready** - Production-ready containerized deployment
+
+---
+
+## Session Management
 
 Use `X-Session-ID` header to maintain context across requests:
 
@@ -78,6 +201,8 @@ Use `X-Session-ID` header to maintain context across requests:
 curl -H "X-Session-ID: dev-session-1" \
   http://localhost:8080/api/orders
 ```
+
+---
 
 ## API Endpoints
 
@@ -371,6 +496,8 @@ HELIX_OLLAMA_MODEL=llama3
 - **groq** - Ultra-fast inference, generous free tier
 - **ollama** - Local models, completely offline
 
+---
+
 ## Advanced Features
 
 ### Chaos Engineering
@@ -444,6 +571,8 @@ helix/
 └── docker-compose.yml   # Container orchestration
 ```
 
+---
+
 ## API Response Format
 
 All AI providers return standardized responses:
@@ -463,15 +592,21 @@ All AI providers return standardized responses:
 }
 ```
 
+---
+
 ## Requirements
 
 - Python 3.11+
 - Redis (via Docker or local installation)
 - Optional: AI provider API keys
 
+---
+
 ## Contributing
 
 Contributions are welcome. Please open an issue first to discuss proposed changes.
+
+---
 
 ## License
 
@@ -479,4 +614,4 @@ AGPLv3 - See [LICENSE](LICENSE) for details.
 
 ---
 
-Built for developers who want to focus on features, not infrastructure.
+**Built for developers who want to focus on features, not infrastructure.**
