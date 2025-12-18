@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 📖 Documentation
+    url: https://github.com/ashfromsky/helix/wiki
+    about: Check the docs first
+  - name: 💬 Discussions
+    url: https://github.com/ashfromsky/helix/discussions
+    about: Ask questions and discuss ideas
