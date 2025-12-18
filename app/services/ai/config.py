@@ -1,7 +1,8 @@
+from enum import Enum
+from typing import Optional
+
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from typing import Optional
-from enum import Enum
 
 
 class AIProvider(str, Enum):

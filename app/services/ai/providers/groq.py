@@ -4,11 +4,13 @@ Ultra-fast LLM inference using Groq's LPU
 Free tier: 14,400 requests/day
 """
 
-import httpx
-from typing import Dict, Any, Optional
 import logging
-from .base import BaseAIProvider
+from typing import Any, Dict, Optional
+
+import httpx
+
 from ..config import ai_settings
+from .base import BaseAIProvider
 
 logger = logging.getLogger(__name__)
 

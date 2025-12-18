@@ -1,8 +1,9 @@
 import json
+import logging
 import time
 from datetime import datetime
+
 from app.database.core.connect import get_redis_connection
-import logging
 
 logger = logging.getLogger(__name__)
 

@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Request
 from fastapi.templating import Jinja2Templates
+
 from app.services.logger import logger_service
 
 router = APIRouter(tags=["Dashboard"])

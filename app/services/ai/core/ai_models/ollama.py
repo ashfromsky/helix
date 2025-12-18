@@ -1,5 +1,7 @@
+from typing import Any, Dict, Optional
+
 import httpx
-from typing import Dict, Any, Optional
+
 from .base import BaseAIProvider
 
 

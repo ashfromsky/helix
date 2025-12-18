@@ -1,7 +1,8 @@
-from app.database.core.connect import get_redis_connection
-import json
 import hashlib
+import json
 import logging
+
+from app.database.core.connect import get_redis_connection
 
 logger = logging.getLogger(__name__)
 

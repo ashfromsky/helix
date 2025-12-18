@@ -1,8 +1,10 @@
-import httpx
-from typing import Dict, Any, Optional
 import logging
-from .base import BaseAIProvider
+from typing import Any, Dict, Optional
+
+import httpx
+
 from ..config import ai_settings
+from .base import BaseAIProvider
 
 logger = logging.getLogger(__name__)
 

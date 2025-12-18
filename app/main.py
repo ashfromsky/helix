@@ -1,18 +1,18 @@
-﻿import random
+﻿import asyncio
 import logging
-import asyncio
+import random
 
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-from app.routes.ui import default as ui_routes
-from app.routes.ui import health
-from app.routes.ui import dashboard
+from app.database.core.config import settings
 from app.routes.additional.openapi_generate_router import router as openapi_router
 from app.routes.requestbased import catch_all
-from app.database.core.config import settings
+from app.routes.ui import dashboard
+from app.routes.ui import default as ui_routes
+from app.routes.ui import health
 from app.services.ai.config import ai_settings
 
 app = FastAPI(title="Helix", description="AI-Powered API Mocking Platform", version="1.0.0")

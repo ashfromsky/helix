@@ -3,10 +3,10 @@ Base AI Provider Interface
 All AI providers must inherit from this class
 """
 
-from abc import ABC, abstractmethod
-from typing import Dict, Any, Optional
 import json
 import re
+from abc import ABC, abstractmethod
+from typing import Any, Dict, Optional
 
 
 class BaseAIProvider(ABC):

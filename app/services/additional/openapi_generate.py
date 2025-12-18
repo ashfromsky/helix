@@ -1,5 +1,5 @@
-from app.services.logger import logger_service
 from app.services.ai.manager import ai_manager
+from app.services.logger import logger_service
 
 
 async def give_recent_logs(limit: int = 100):

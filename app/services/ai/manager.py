@@ -1,9 +1,10 @@
 import logging
+
 from app.services.ai.config import ai_settings
 from app.services.ai.providers.deepseek import DeepSeekProvider
-from app.services.ai.providers.ollama import OllamaProvider
-from app.services.ai.providers.groq import GroqProvider
 from app.services.ai.providers.demo import DemoProvider
+from app.services.ai.providers.groq import GroqProvider
+from app.services.ai.providers.ollama import OllamaProvider
 
 logger = logging.getLogger(__name__)
 

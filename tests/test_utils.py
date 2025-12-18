@@ -2,8 +2,9 @@
 Utility function tests.
 """
 
-import pytest
 import re
+
+import pytest
 
 
 class TestStringUtilities:

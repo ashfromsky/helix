@@ -1,7 +1,9 @@
+from datetime import datetime
+
 from fastapi import APIRouter, HTTPException
+
 from app.database.core.connect import ping_redis
 from app.services.ai.manager import ai_manager
-from datetime import datetime
 
 router = APIRouter(tags=["health"])
 

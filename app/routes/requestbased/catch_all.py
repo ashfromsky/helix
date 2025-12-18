@@ -1,11 +1,12 @@
-﻿import time
-import json
-from fastapi import APIRouter, Request, BackgroundTasks
+﻿import json
+import time
+
+from fastapi import APIRouter, BackgroundTasks, Request
 from fastapi.responses import JSONResponse
 
 from app.services.ai.manager import ai_manager
-from app.services.cache import cache_service
 from app.services.analyzer import request_analyzer
+from app.services.cache import cache_service
 from app.services.context import context_manager
 from app.services.logger import logger_service
 
