@@ -11,30 +11,23 @@ class GroqProvider(BaseAIProvider):
         self.base_url = "https://api.groq.com/openai/v1"
 
     async def generate_response(
-            self,
-            method: str,
-            path: str,
-            body: Optional[Dict] = None,
-            context: Optional[list] = None
+        self, method: str, path: str, body: Optional[Dict] = None, context: Optional[list] = None
     ) -> Dict[str, Any]:
         prompt = self._build_prompt(method, path, body, context)
 
         async with httpx.AsyncClient(timeout=ai_settings.AI_TIMEOUT) as client:
             response = await client.post(
                 f"{self.base_url}/chat/completions",
-                headers={
-                    "Authorization": f"Bearer {self.api_key}",
-                    "Content-Type": "application/json"
-                },
+                headers={"Authorization": f"Bearer {self.api_key}", "Content-Type": "application/json"},
                 json={
                     "model": self.model,
                     "messages": [
                         {"role": "system", "content": self._get_system_prompt()},
-                        {"role": "user", "content": prompt}
+                        {"role": "user", "content": prompt},
                     ],
                     "temperature": ai_settings.AI_TEMPERATURE,
-                    "max_tokens": ai_settings.AI_MAX_TOKENS
-                }
+                    "max_tokens": ai_settings.AI_MAX_TOKENS,
+                },
             )
             response.raise_for_status()
 
@@ -57,7 +50,7 @@ class GroqProvider(BaseAIProvider):
         import json
         import re
 
-        json_match = re.search(r'```json\s*(\{.*?\})\s*```', text, re.DOTALL)
+        json_match = re.search(r"```json\s*(\{.*?\})\s*```", text, re.DOTALL)
         if json_match:
             return json.loads(json_match.group(1))
 

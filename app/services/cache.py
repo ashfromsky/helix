@@ -5,6 +5,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 class CacheService:
     def __init__(self):
         self.redis = get_redis_connection()
@@ -32,5 +33,6 @@ class CacheService:
             self.redis.delete(key)
         except Exception:
             pass
+
 
 cache_service = CacheService()

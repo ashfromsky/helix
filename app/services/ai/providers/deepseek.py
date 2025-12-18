@@ -23,30 +23,28 @@ class DeepSeekProvider(BaseAIProvider):
     3. Set HELIX_OPENROUTER_API_KEY in .env
     """
 
-    def __init__(
-            self,
-            api_key: str,
-            model: str = "deepseek/deepseek-chat"
-    ):
+    def __init__(self, api_key: str, model: str = "deepseek/deepseek-chat"):
         self.api_key = api_key
         self.model = model
         self.base_url = "https://openrouter.ai/api/v1"
         self.timeout = ai_settings.AI_TIMEOUT
 
     async def generate_response(
-            self,
-            method: str,
-            path: str,
-            body: Optional[Dict] = None,
-            context: Optional[list] = None,
-            system_prompt: str = None
+        self,
+        method: str,
+        path: str,
+        body: Optional[Dict] = None,
+        context: Optional[list] = None,
+        system_prompt: str = None,
     ) -> Dict[str, Any]:
         """
         Generate response using DeepSeek via OpenRouter
         """
         try:
-            if system_prompt is None: sys_prompt_content = self._get_system_prompt()
-            else: sys_prompt_content = system_prompt
+            if system_prompt is None:
+                sys_prompt_content = self._get_system_prompt()
+            else:
+                sys_prompt_content = system_prompt
 
             user_prompt = self._build_user_prompt(method, path, body, context)
 
@@ -57,18 +55,18 @@ class DeepSeekProvider(BaseAIProvider):
                         "Authorization": f"Bearer {self.api_key}",
                         "Content-Type": "application/json",
                         "HTTP-Referer": "https://github.com/helix",
-                        "X-Title": "Helix Mock Server"
+                        "X-Title": "Helix Mock Server",
                     },
                     json={
                         "model": self.model,
                         "messages": [
                             {"role": "system", "content": sys_prompt_content},
-                            {"role": "user", "content": user_prompt}
+                            {"role": "user", "content": user_prompt},
                         ],
                         "temperature": ai_settings.AI_TEMPERATURE,
                         "max_tokens": ai_settings.AI_MAX_TOKENS,
-                        "response_format": {"type": "json_object"}
-                    }
+                        "response_format": {"type": "json_object"},
+                    },
                 )
 
                 response.raise_for_status()
@@ -110,8 +108,7 @@ class DeepSeekProvider(BaseAIProvider):
         try:
             async with httpx.AsyncClient(timeout=5) as client:
                 response = await client.get(
-                    f"{self.base_url}/models",
-                    headers={"Authorization": f"Bearer {self.api_key}"}
+                    f"{self.base_url}/models", headers={"Authorization": f"Bearer {self.api_key}"}
                 )
                 return response.status_code == 200
         except Exception:
@@ -127,5 +124,5 @@ class DeepSeekProvider(BaseAIProvider):
             "api": "OpenRouter",
             "base_url": self.base_url,
             "free_tier": "~500 requests/day",
-            "docs": "https://openrouter.ai/docs"
+            "docs": "https://openrouter.ai/docs",
         }

@@ -19,25 +19,16 @@ class AIManager:
                 if not ai_settings.OPENROUTER_API_KEY:
                     logger.warning("DeepSeek key missing. Falling back to DEMO.")
                     return DemoProvider()
-                return DeepSeekProvider(
-                    api_key=ai_settings.OPENROUTER_API_KEY,
-                    model=ai_settings.OPENROUTER_MODEL
-                )
+                return DeepSeekProvider(api_key=ai_settings.OPENROUTER_API_KEY, model=ai_settings.OPENROUTER_MODEL)
 
             elif self.provider_name == "ollama":
-                return OllamaProvider(
-                    host=ai_settings.OLLAMA_HOST,
-                    model=ai_settings.OLLAMA_MODEL
-                )
+                return OllamaProvider(host=ai_settings.OLLAMA_HOST, model=ai_settings.OLLAMA_MODEL)
 
             elif self.provider_name == "groq":
                 if not ai_settings.GROQ_API_KEY:
                     logger.warning("Groq key missing. Falling back to DEMO.")
                     return DemoProvider()
-                return GroqProvider(
-                    api_key=ai_settings.GROQ_API_KEY,
-                    model=ai_settings.GROQ_MODEL
-                )
+                return GroqProvider(api_key=ai_settings.GROQ_API_KEY, model=ai_settings.GROQ_MODEL)
 
             else:
                 return DemoProvider()
@@ -46,7 +37,9 @@ class AIManager:
             logger.error(f"Failed to init provider {self.provider_name}: {e}")
             return DemoProvider()
 
-    async def generate_response(self, method: str, path: str, body: dict = None, context: list = None, system_prompt: str = None) -> dict:
+    async def generate_response(
+        self, method: str, path: str, body: dict = None, context: list = None, system_prompt: str = None
+    ) -> dict:
         return await self.provider.generate_response(method, path, body, context, system_prompt=system_prompt)
 
     def get_status(self) -> dict:
@@ -57,7 +50,7 @@ class AIManager:
         return {
             "provider": self.provider_name,
             "model": getattr(self.provider, "model", "template-based"),
-            "status": "active"
+            "status": "active",
         }
 
 

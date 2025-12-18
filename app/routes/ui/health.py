@@ -18,8 +18,8 @@ async def health_check():
         "services": {
             "redis": "up" if redis_healthy else "down",
             "ai_provider": ai_status["provider"],
-            "ai_model": ai_status["model"]
-        }
+            "ai_model": ai_status["model"],
+        },
     }
 
 
@@ -36,10 +36,7 @@ async def detailed_status():
             "service": "Helix Backend",
             "status": "online",
             "version": "0.1.0",
-            "components": {
-                "ai_manager": ai_status,
-                "database": "connected"
-            }
+            "components": {"ai_manager": ai_status, "database": "connected"},
         }
     except Exception as e:
         print(f"Health check error: {e}")

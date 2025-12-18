@@ -1,6 +1,7 @@
 """
 Utility function tests.
 """
+
 import pytest
 import re
 
@@ -19,7 +20,7 @@ class TestStringUtilities:
 
         def is_valid_email(email: str) -> bool:
             """Simple email validation."""
-            pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+            pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
             return bool(re.match(pattern, email))
 
         valid_emails = ["test@example.com", "user.name@domain.org", "admin@site.co.uk"]
@@ -34,22 +35,28 @@ class TestStringUtilities:
 class TestDataValidation:
     """Tests for data validation."""
 
-    @pytest.mark.parametrize("value,expected", [
-        (1, True),
-        (0, False),
-        (-1, True),
-        (100, True),
-    ])
+    @pytest.mark.parametrize(
+        "value,expected",
+        [
+            (1, True),
+            (0, False),
+            (-1, True),
+            (100, True),
+        ],
+    )
     def test_integer_boolean_conversion(self, value, expected):
         """Test integer to boolean conversion."""
         assert bool(value) == expected
 
-    @pytest.mark.parametrize("input_list,expected_length", [
-        ([], 0),
-        ([1], 1),
-        ([1, 2, 3], 3),
-        (list(range(100)), 100),
-    ])
+    @pytest.mark.parametrize(
+        "input_list,expected_length",
+        [
+            ([], 0),
+            ([1], 1),
+            ([1, 2, 3], 3),
+            (list(range(100)), 100),
+        ],
+    )
     def test_list_length(self, input_list, expected_length):
         """Test list length calculation."""
         assert len(input_list) == expected_length

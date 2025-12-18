@@ -6,10 +6,7 @@ async def give_recent_logs(limit: int = 100):
     logs = logger_service.get_recent_logs(limit=limit)
 
     if not logs:
-        return {
-            "error": "No logs available",
-            "message": "Make some API requests first to generate traffic data"
-        }
+        return {"error": "No logs available", "message": "Make some API requests first to generate traffic data"}
 
     architect_prompt = """You are an expert OpenAPI 3.0 specification architect.
 
@@ -59,12 +56,8 @@ Analyze the logs below and generate the OpenAPI spec:"""
     response = await ai_manager.generate_response(
         method="POST",
         path="/api/generate-spec",
-        body={
-            "task": "generate_openapi_spec",
-            "logs": logs,
-            "log_count": len(logs)
-        },
-        system_prompt=architect_prompt
+        body={"task": "generate_openapi_spec", "logs": logs, "log_count": len(logs)},
+        system_prompt=architect_prompt,
     )
 
     body = response.get("body", {})
@@ -77,5 +70,5 @@ Analyze the logs below and generate the OpenAPI spec:"""
         return {
             "error": "Failed to generate OpenAPI spec",
             "raw_response": body,
-            "hint": "AI provider may not support system prompts. Try using DeepSeek or Groq."
+            "hint": "AI provider may not support system prompts. Try using DeepSeek or Groq.",
         }

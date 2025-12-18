@@ -9,10 +9,4 @@ from .deepseek import DeepSeekProvider
 from .ollama import OllamaProvider
 from .groq import GroqProvider
 
-__all__ = [
-    "BaseAIProvider",
-    "DemoProvider",
-    "DeepSeekProvider",
-    "OllamaProvider",
-    "GroqProvider"
-]
+__all__ = ["BaseAIProvider", "DemoProvider", "DeepSeekProvider", "OllamaProvider", "GroqProvider"]

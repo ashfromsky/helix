@@ -29,50 +29,45 @@ class GroqProvider(BaseAIProvider):
     - gemma2-9b-it
     """
 
-    def __init__(
-            self,
-            api_key: str,
-            model: str = "llama-3.1-70b-versatile"
-    ):
+    def __init__(self, api_key: str, model: str = "llama-3.1-70b-versatile"):
         self.api_key = api_key
         self.model = model
         self.base_url = "https://api.groq.com/openai/v1"
         self.timeout = ai_settings.AI_TIMEOUT
 
     async def generate_response(
-            self,
-            method: str,
-            path: str,
-            body: Optional[Dict] = None,
-            context: Optional[list] = None,
-            system_prompt: str = None
+        self,
+        method: str,
+        path: str,
+        body: Optional[Dict] = None,
+        context: Optional[list] = None,
+        system_prompt: str = None,
     ) -> Dict[str, Any]:
         """
         Generate response using Groq's fast inference
         """
         try:
-            if system_prompt is None: sys_prompt_content = self._get_system_prompt()
-            else: sys_prompt_content = system_prompt
+            if system_prompt is None:
+                sys_prompt_content = self._get_system_prompt()
+            else:
+                sys_prompt_content = system_prompt
 
             user_prompt = self._build_user_prompt(method, path, body, context)
 
             async with httpx.AsyncClient(timeout=self.timeout) as client:
                 response = await client.post(
                     f"{self.base_url}/chat/completions",
-                    headers={
-                        "Authorization": f"Bearer {self.api_key}",
-                        "Content-Type": "application/json"
-                    },
+                    headers={"Authorization": f"Bearer {self.api_key}", "Content-Type": "application/json"},
                     json={
                         "model": self.model,
                         "messages": [
                             {"role": "system", "content": sys_prompt_content},
-                            {"role": "user", "content": user_prompt}
+                            {"role": "user", "content": user_prompt},
                         ],
                         "temperature": ai_settings.AI_TEMPERATURE,
                         "max_tokens": ai_settings.AI_MAX_TOKENS,
-                        "response_format": {"type": "json_object"}  # Force JSON output
-                    }
+                        "response_format": {"type": "json_object"},  # Force JSON output
+                    },
                 )
 
                 response.raise_for_status()
@@ -128,8 +123,7 @@ class GroqProvider(BaseAIProvider):
         try:
             async with httpx.AsyncClient(timeout=5) as client:
                 response = await client.get(
-                    f"{self.base_url}/models",
-                    headers={"Authorization": f"Bearer {self.api_key}"}
+                    f"{self.base_url}/models", headers={"Authorization": f"Bearer {self.api_key}"}
                 )
                 return response.status_code == 200
         except Exception:
@@ -142,18 +136,13 @@ class GroqProvider(BaseAIProvider):
         try:
             async with httpx.AsyncClient(timeout=5) as client:
                 response = await client.get(
-                    f"{self.base_url}/models",
-                    headers={"Authorization": f"Bearer {self.api_key}"}
+                    f"{self.base_url}/models", headers={"Authorization": f"Bearer {self.api_key}"}
                 )
                 response.raise_for_status()
 
                 models = response.json().get("data", [])
                 return [
-                    {
-                        "id": m.get("id"),
-                        "owned_by": m.get("owned_by"),
-                        "context_window": m.get("context_window")
-                    }
+                    {"id": m.get("id"), "owned_by": m.get("owned_by"), "context_window": m.get("context_window")}
                     for m in models
                 ]
         except Exception:
@@ -170,7 +159,7 @@ class GroqProvider(BaseAIProvider):
             "base_url": self.base_url,
             "free_tier": "14,400 requests/day",
             "speed": "ultra-fast (LPU)",
-            "docs": "https://console.groq.com/docs"
+            "docs": "https://console.groq.com/docs",
         }
 
     def get_available_models(self) -> list:
@@ -183,27 +172,27 @@ class GroqProvider(BaseAIProvider):
                 "name": "Llama 3.1 70B",
                 "context": "128K tokens",
                 "speed": "fast",
-                "recommended": True
+                "recommended": True,
             },
             {
                 "id": "llama-3.1-8b-instant",
                 "name": "Llama 3.1 8B",
                 "context": "128K tokens",
                 "speed": "ultra-fast",
-                "recommended": False
+                "recommended": False,
             },
             {
                 "id": "mixtral-8x7b-32768",
                 "name": "Mixtral 8x7B",
                 "context": "32K tokens",
                 "speed": "fast",
-                "recommended": False
+                "recommended": False,
             },
             {
                 "id": "gemma2-9b-it",
                 "name": "Gemma 2 9B",
                 "context": "8K tokens",
                 "speed": "ultra-fast",
-                "recommended": False
-            }
+                "recommended": False,
+            },
         ]

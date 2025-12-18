@@ -28,8 +28,7 @@ async def catch_all_handler(path: str, request: Request, background_tasks: Backg
     if cached:
         duration = (time.time() - start_time) * 1000
         background_tasks.add_task(
-            logger_service.log_request,
-            method, path, cached["status_code"], duration, body, cached["body"]
+            logger_service.log_request, method, path, cached["status_code"], duration, body, cached["body"]
         )
         return JSONResponse(content=cached["body"], status_code=cached["status_code"], headers=cached.get("headers"))
 
@@ -38,29 +37,23 @@ async def catch_all_handler(path: str, request: Request, background_tasks: Backg
 
     context = await context_manager.get_context(session_id)
 
-    response_data = await ai_manager.generate_response(
-        method=method,
-        path=path,
-        body=body,
-        context=context
-    )
+    response_data = await ai_manager.generate_response(method=method, path=path, body=body, context=context)
 
     await cache_service.set(cache_key, response_data)
 
-    await context_manager.add_to_context(session_id, {
-        "method": method,
-        "path": path,
-        "body": body,
-        "response": response_data
-    })
+    await context_manager.add_to_context(
+        session_id, {"method": method, "path": path, "body": body, "response": response_data}
+    )
 
     duration = (time.time() - start_time) * 1000
     background_tasks.add_task(
         logger_service.log_request,
-        method, path, response_data.get("status_code", 200), duration, body, response_data.get("body")
+        method,
+        path,
+        response_data.get("status_code", 200),
+        duration,
+        body,
+        response_data.get("body"),
     )
 
-    return JSONResponse(
-        content=response_data.get("body", {}),
-        status_code=response_data.get("status_code", 200)
-    )
+    return JSONResponse(content=response_data.get("body", {}), status_code=response_data.get("status_code", 200))

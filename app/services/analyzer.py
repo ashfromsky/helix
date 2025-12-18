@@ -4,10 +4,10 @@ from typing import Optional
 
 class RequestAnalyzer:
     def __init__(self):
-        self.ignored_segments = {'api', 'v1', 'v2', 'v3', 'rest', 'json'}
+        self.ignored_segments = {"api", "v1", "v2", "v3", "rest", "json"}
 
     def extract_resource(self, path: str) -> str:
-        segments = [s for s in path.strip('/').split('/') if s]
+        segments = [s for s in path.strip("/").split("/") if s]
 
         clean_segments = []
         for segment in segments:
@@ -20,7 +20,7 @@ class RequestAnalyzer:
         return clean_segments[-1] if clean_segments else "root"
 
     def is_collection(self, path: str) -> bool:
-        segments = [s for s in path.strip('/').split('/') if s]
+        segments = [s for s in path.strip("/").split("/") if s]
         if not segments:
             return False
 
@@ -44,10 +44,11 @@ class RequestAnalyzer:
     def _looks_like_id(self, segment: str) -> bool:
         if segment.isdigit():
             return True
-        if re.match(r'^[0-9a-f]{8}-[0-9a-f]{4}', segment):
+        if re.match(r"^[0-9a-f]{8}-[0-9a-f]{4}", segment):
             return True
-        if re.match(r'^[a-z]+_\w+', segment) and any(c.isdigit() for c in segment):
+        if re.match(r"^[a-z]+_\w+", segment) and any(c.isdigit() for c in segment):
             return True
         return False
+
 
 request_analyzer = RequestAnalyzer()

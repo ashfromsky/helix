@@ -10,10 +10,7 @@ async def get_openapi_spec(limit: int = Query(50, ge=10)):
     check_logs = logger_service.get_recent_logs(limit=1)
 
     if not check_logs:
-        raise HTTPException(
-            status_code=404,
-            detail="No traffic recorded yet. Make some requests to the API first."
-        )
+        raise HTTPException(status_code=404, detail="No traffic recorded yet. Make some requests to the API first.")
 
     try:
         spec = await give_recent_logs(limit)

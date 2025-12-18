@@ -19,14 +19,6 @@ def mock_env_vars():
 def sample_data():
     """Fixture providing sample test data."""
     return {
-        "user": {
-            "id": 1,
-            "username": "testuser",
-            "email": "test@example.com"
-        },
-        "project": {
-            "id": 1,
-            "name": "Test Project",
-            "description":  "A test project"
-        }
+        "user": {"id": 1, "username": "testuser", "email": "test@example.com"},
+        "project": {"id": 1, "name": "Test Project", "description": "A test project"},
     }

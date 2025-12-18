@@ -17,12 +17,12 @@ class BaseAIProvider(ABC):
 
     @abstractmethod
     async def generate_response(
-            self,
-            method: str,
-            path: str,
-            body: Optional[Dict] = None,
-            context: Optional[list] = None,
-            system_prompt: Optional[str] = None
+        self,
+        method: str,
+        path: str,
+        body: Optional[Dict] = None,
+        context: Optional[list] = None,
+        system_prompt: Optional[str] = None,
     ) -> Dict[str, Any]:
         """
         Generate mock API response based on request parameters
@@ -64,11 +64,7 @@ Output ONLY valid JSON in this format:
 }"""
 
     def _build_user_prompt(
-            self,
-            method: str,
-            path: str,
-            body: Optional[Dict] = None,
-            context: Optional[list] = None
+        self, method: str, path: str, body: Optional[Dict] = None, context: Optional[list] = None
     ) -> str:
         """
         Build user prompt with request details
@@ -82,10 +78,7 @@ Output ONLY valid JSON in this format:
             prompt_parts.append(f"Request Body:\n{json.dumps(body, indent=2)}")
 
         if context and len(context) > 0:
-            context_str = "\n".join([
-                f"- {req.get('method')} {req.get('path')}"
-                for req in context[-5:]
-            ])
+            context_str = "\n".join([f"- {req.get('method')} {req.get('path')}" for req in context[-5:]])
             prompt_parts.append(f"Recent Context:\n{context_str}")
 
         prompt_parts.append("\nGenerate appropriate JSON response:")
@@ -97,21 +90,21 @@ Output ONLY valid JSON in this format:
         Parse AI response text and extract JSON
         Handles various formats: markdown code blocks, plain JSON, etc.
         """
-        json_match = re.search(r'```json\s*(\{.*?\})\s*```', text, re.DOTALL)
+        json_match = re.search(r"```json\s*(\{.*?\})\s*```", text, re.DOTALL)
         if json_match:
             try:
                 return json.loads(json_match.group(1))
             except json.JSONDecodeError:
                 pass
 
-        code_match = re.search(r'```\s*(\{.*?\})\s*```', text, re.DOTALL)
+        code_match = re.search(r"```\s*(\{.*?\})\s*```", text, re.DOTALL)
         if code_match:
             try:
                 return json.loads(code_match.group(1))
             except json.JSONDecodeError:
                 pass
 
-        json_match = re.search(r'\{.*\}', text, re.DOTALL)
+        json_match = re.search(r"\{.*\}", text, re.DOTALL)
         if json_match:
             try:
                 return json.loads(json_match.group(0))
@@ -121,10 +114,7 @@ Output ONLY valid JSON in this format:
         return {
             "status_code": 500,
             "headers": {"Content-Type": "application/json"},
-            "body": {
-                "error": "Failed to parse AI response",
-                "raw_response": text[:200]
-            }
+            "body": {"error": "Failed to parse AI response", "raw_response": text[:200]},
         }
 
     def _validate_response(self, response: Dict[str, Any]) -> Dict[str, Any]:
@@ -136,7 +126,7 @@ Output ONLY valid JSON in this format:
             return {
                 "status_code": 500,
                 "headers": {"Content-Type": "application/json"},
-                "body": {"error": "Invalid response format"}
+                "body": {"error": "Invalid response format"},
             }
 
         response.setdefault("status_code", 200)

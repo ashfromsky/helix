@@ -15,11 +15,7 @@ from app.routes.requestbased import catch_all
 from app.database.core.config import settings
 from app.services.ai.config import ai_settings
 
-app = FastAPI(
-    title="Helix",
-    description="AI-Powered API Mocking Platform",
-    version="1.0.0"
-)
+app = FastAPI(title="Helix", description="AI-Powered API Mocking Platform", version="1.0.0")
 
 logger = logging.getLogger("uvicorn.error")
 
@@ -36,6 +32,7 @@ app.include_router(openapi_router, tags=["OpenAPI Generation"])
 
 # catch-all route
 app.include_router(catch_all.router, tags=["Mocking"])
+
 
 @app.middleware("http")
 async def chaos_middleware(request: Request, call_next):
@@ -56,15 +53,14 @@ async def chaos_middleware(request: Request, call_next):
         logger.error(f"💥 Chaos: Injecting 500 error to {request.url.path}")
         return JSONResponse(
             status_code=500,
-            content={
-                "error": "Chaos Monkey Strike",
-                "message": "Simulated infrastructure failure by Helix"
-            }
+            content={"error": "Chaos Monkey Strike", "message": "Simulated infrastructure failure by Helix"},
         )
 
     response = await call_next(request)
     return response
 
+
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)

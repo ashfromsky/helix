@@ -9,11 +9,7 @@ fake = Faker()
 class DemoProvider:
 
     async def generate_response(
-            self,
-            method: str,
-            path: str,
-            body: Optional[Dict] = None,
-            context: Optional[list] = None
+        self, method: str, path: str, body: Optional[Dict] = None, context: Optional[list] = None
     ) -> Dict[str, Any]:
 
         resource = self._extract_resource(path)
@@ -52,12 +48,7 @@ class DemoProvider:
         return {
             "status_code": 200,
             "headers": {"Content-Type": "application/json"},
-            "body": {
-                resource: items,
-                "total": len(items),
-                "page": 1,
-                "per_page": 10
-            }
+            "body": {resource: items, "total": len(items), "page": 1, "per_page": 10},
         }
 
     def _generate_single(self, resource: str, path: str) -> Dict:
@@ -66,7 +57,7 @@ class DemoProvider:
         return {
             "status_code": 200,
             "headers": {"Content-Type": "application/json"},
-            "body": self._generate_item(resource, item_id)
+            "body": self._generate_item(resource, item_id),
         }
 
     def _generate_created(self, resource: str, body: Optional[Dict]) -> Dict:
@@ -75,11 +66,7 @@ class DemoProvider:
         if body:
             item.update(body)
 
-        return {
-            "status_code": 201,
-            "headers": {"Content-Type": "application/json"},
-            "body": item
-        }
+        return {"status_code": 201, "headers": {"Content-Type": "application/json"}, "body": item}
 
     def _generate_updated(self, resource: str, body: Optional[Dict], path: str) -> Dict:
         item_id = path.strip("/").split("/")[-1]
@@ -90,52 +77,41 @@ class DemoProvider:
 
         item["updated_at"] = datetime.utcnow().isoformat() + "Z"
 
-        return {
-            "status_code": 200,
-            "headers": {"Content-Type": "application/json"},
-            "body": item
-        }
+        return {"status_code": 200, "headers": {"Content-Type": "application/json"}, "body": item}
 
     def _generate_deleted(self, path: str) -> Dict:
-        return {
-            "status_code": 204,
-            "headers": {"Content-Type": "application/json"},
-            "body": {}
-        }
+        return {"status_code": 204, "headers": {"Content-Type": "application/json"}, "body": {}}
 
     def _generate_item(self, resource: str, item_id: Any) -> Dict:
-        base = {
-            "id": str(item_id),
-            "created_at": fake.iso8601(),
-            "updated_at": fake.iso8601()
-        }
+        base = {"id": str(item_id), "created_at": fake.iso8601(), "updated_at": fake.iso8601()}
 
         if resource in ["users", "user"]:
-            base.update({
-                "name": fake.name(),
-                "email": fake.email(),
-                "username": fake.user_name(),
-                "status": "active"
-            })
+            base.update({"name": fake.name(), "email": fake.email(), "username": fake.user_name(), "status": "active"})
         elif resource in ["products", "product"]:
-            base.update({
-                "name": fake.catch_phrase(),
-                "price": round(fake.random.uniform(10, 1000), 2),
-                "currency": "USD",
-                "in_stock": fake.boolean()
-            })
+            base.update(
+                {
+                    "name": fake.catch_phrase(),
+                    "price": round(fake.random.uniform(10, 1000), 2),
+                    "currency": "USD",
+                    "in_stock": fake.boolean(),
+                }
+            )
         elif resource in ["orders", "order"]:
-            base.update({
-                "total": round(fake.random.uniform(50, 500), 2),
-                "status": fake.random.choice(["pending", "completed", "cancelled"]),
-                "customer_id": fake.uuid4()[:8]
-            })
+            base.update(
+                {
+                    "total": round(fake.random.uniform(50, 500), 2),
+                    "status": fake.random.choice(["pending", "completed", "cancelled"]),
+                    "customer_id": fake.uuid4()[:8],
+                }
+            )
         else:
-            base.update({
-                "name": fake.word().capitalize(),
-                "description": fake.sentence(),
-                "status": fake.random.choice(["active", "inactive"])
-            })
+            base.update(
+                {
+                    "name": fake.word().capitalize(),
+                    "description": fake.sentence(),
+                    "status": fake.random.choice(["active", "inactive"]),
+                }
+            )
 
         return base
 
@@ -143,8 +119,5 @@ class DemoProvider:
         return {
             "status_code": 200,
             "headers": {"Content-Type": "application/json"},
-            "body": {
-                "message": "Mock response generated",
-                "timestamp": datetime.utcnow().isoformat() + "Z"
-            }
+            "body": {"message": "Mock response generated", "timestamp": datetime.utcnow().isoformat() + "Z"},
         }

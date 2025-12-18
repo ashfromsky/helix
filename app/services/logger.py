@@ -23,7 +23,7 @@ class LoggerService:
                 "status": status,
                 "duration": round(duration_ms, 2),
                 "body": body,
-                "response": response
+                "response": response,
             }
 
             self.redis.lpush(self.log_key, json.dumps(log_entry))

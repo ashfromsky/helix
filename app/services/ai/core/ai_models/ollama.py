@@ -9,10 +9,6 @@ class OllamaProvider(BaseAIProvider):
         self.model = model
 
     async def generate_response(
-            self,
-            method: str,
-            path: str,
-            body: Optional[Dict] = None,
-            context: Optional[list] = None
+        self, method: str, path: str, body: Optional[Dict] = None, context: Optional[list] = None
     ) -> Dict[str, Any]:
         pass
