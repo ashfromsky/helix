@@ -15,7 +15,7 @@ from app.routes.ui import default as ui_routes
 from app.routes.ui import health
 from app.services.ai.config import ai_settings
 
-app = FastAPI(title="Helix", description="AI-Powered API Mocking Platform", version="1.0.0")
+app = FastAPI(title="Helix", description="AI-Powered API Mocking Platform", version="0.1.0")
 
 logger = logging.getLogger("uvicorn.error")
 

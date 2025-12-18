@@ -1,4 +1,4 @@
-# Contributing to AcquireMock
+# Contributing to Helix
 
 Thank you for your interest in contributing to AcquireMock! We welcome contributions from the community.
 
@@ -48,7 +48,7 @@ Feature suggestions are welcome! Please create an issue with:
 ```bash
 # Clone your fork
 git clone https://github.com/ashfromsky/helix.git
-cd acquiremock
+cd helix
 
 # Create virtual environment
 python -m venv venv

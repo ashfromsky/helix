@@ -606,6 +606,10 @@ All AI providers return standardized responses:
 
 Contributions are welcome. Please open an issue first to discuss proposed changes.
 
+## ⚠️ Security Notice
+
+Never commit your `.env` file or API keys to Git. The `.env.example` is safe to share, but always keep your actual `.env` private.
+
 ---
 
 ## License
