@@ -372,7 +372,7 @@ def init():
         Align.center(
             f"[bold {COLORS['success']}]Configuration Applied Successfully[/]\n\n"
             "Start the server:\n"
-            f"[bold {COLORS['dark']} on white] uvicorn app.main:app --reload [/]\n\n"
+            f"[bold {COLORS['dark']} on white] helix start [/]\n\n"
             f"Provider: [bold {COLORS['primary']}]{config['provider'].upper()}[/]"
         ),
         border_style=COLORS['success'],
