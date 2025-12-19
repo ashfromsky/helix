@@ -14,30 +14,52 @@ Stop writing mock data manually. Define your schema once - Helix generates reali
 
 ## Quick Start
 
-### Using Docker (Recommended)
+### Option 1: CLI Setup (Recommended)
+
+```bash
+# Install Helix
+git clone https://github.com/ashfromsky/helix.git
+cd helix
+pip install -e .
+
+# Interactive setup wizard
+helix init
+
+# Start server
+helix start
+```
+
+Visit `http://localhost:8000`
+
+### Option 2: Docker (Fastest)
+
+```bash
+# Clone and start
+git clone https://github.com/ashfromsky/helix.git
+cd helix
+docker-compose up
+```
+
+Visit `http://localhost:8080`
+
+### Option 3: Manual Setup
 
 ```bash
 # Clone repository
 git clone https://github.com/ashfromsky/helix.git
 cd helix
 
-# Start services
-docker-compose up
-```
-
-Visit `http://localhost:8080`
-
-### Local Setup
-
-```bash
-# Run setup script
-chmod +x setup.sh
-./setup.sh
-
-# Activate virtual environment
+# Create virtual environment
+python -m venv venv
 source venv/bin/activate  # Linux/Mac
 # or
 venv\Scripts\activate     # Windows
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Copy configuration
+cp .env.example .env
 
 # Start server
 uvicorn app.main:app --reload --port 8080
@@ -46,6 +68,143 @@ uvicorn app.main:app --reload --port 8080
 ### Want to Run Offline with Local LLM?
 
 → **[Jump to Ollama Setup](#ollama-local-ai)** for completely offline AI with no API keys.
+
+---
+
+## CLI Commands
+
+Helix provides a powerful CLI for easy management:
+
+### `helix init`
+
+Interactive setup wizard that configures your environment:
+
+```bash
+helix init
+```
+
+**What it does:**
+- Guides you through AI provider selection (demo/ollama/deepseek/groq)
+- Configures API keys if needed
+- Creates `.env` file automatically
+- Sets up Redis container (if Docker available)
+- Initializes AI system prompt
+- Creates required directories
+
+**Example output:**
+```
+AI-Powered API Mocking Platform
+SETUP WIZARD
+
+1. AI Provider Configuration
+? Select AI provider: 
+  → demo - Free, no API keys required
+    ollama - Local LLM, private and unlimited
+    deepseek - OpenRouter, cost-effective
+    groq - Ultra-fast inference, free tier available
+
+2. Environment Setup
+✓ Configuration applied successfully
+✓ Directory structure created
+✓ AI system prompt initialized
+
+3. Infrastructure
+✓ Redis started successfully
+
+Configuration Applied Successfully
+
+Provider: DEMO
+```
+
+### `helix start`
+
+Starts the Helix API server:
+
+```bash
+helix start [OPTIONS]
+```
+
+**Options:**
+- `--host TEXT`: Host to bind to (default: 0.0.0.0)
+- `--port INTEGER`: Port to bind to (default: 8000)
+- `--reload / --no-reload`: Enable auto-reload (default: True)
+
+**Examples:**
+```bash
+# Start with defaults
+helix start
+
+# Custom port
+helix start --port 3000
+
+# Production mode (no reload)
+helix start --no-reload --port 8080
+```
+
+### `helix status`
+
+Shows current configuration and system status:
+
+```bash
+helix status
+```
+
+**Example output:**
+```
+Configuration Status
+CURRENT SETTINGS
+
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ Parameter                    ┃ Value                                ┃
+┡━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
+│ AI Provider                  │ demo                                 │
+│ Redis URL                    │ redis://localhost:6379               │
+│ Server Port                  │ 8000                                 │
+└──────────────────────────────┴──────────────────────────────────────┘
+```
+
+### `helix config`
+
+Manage configuration interactively:
+
+```bash
+helix config
+```
+
+**Options:**
+- **Change AI Provider**: Switch between demo/ollama/deepseek/groq
+- **Update API Keys**: Update existing API credentials
+- **Reset Configuration**: Delete and reconfigure from scratch
+- **Exit**: Leave configuration unchanged
+
+**Example session:**
+```bash
+helix config
+
+Configuration Manager
+MODIFY SETTINGS
+
+? What would you like to configure?
+  → Change AI Provider
+    Update API Keys
+    Reset Configuration
+    Exit
+
+? Select AI provider:
+  → deepseek - OpenRouter, cost-effective
+
+? OpenRouter API key: ****************************
+
+✓ Provider configuration updated
+```
+
+### `helix --help`
+
+Shows all available commands and options:
+
+```bash
+helix --help
+```
 
 ---
 
@@ -94,177 +253,45 @@ Body: {
 - **Redis Caching** - Fast responses with intelligent caching
 - **Chaos Engineering** - Simulate failures and latency
 - **Live Dashboard** - Monitor requests in real-time
-
----
-
-## Schema Enforcement
-
-**Problem:** Random JSON structures break your frontend.
-
-**Solution:** Define your schema - Helix guarantees compliance.
-
-### Example: TypeScript Interface → Guaranteed JSON
-
-**1. Your TypeScript Interface:**
-```typescript
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  role: 'admin' | 'user' | 'guest';
-  createdAt: string; // ISO 8601
-  metadata: {
-    lastLogin: string;
-    loginCount: number;
-  }
-}
-```
-
-**2. Send Schema to Helix:**
-```bash
-curl -X POST http://localhost:8080/api/users \
-  -H "Content-Type: application/json" \
-  -d '{
-    "schema": {
-      "id": "string",
-      "name": "string", 
-      "email": "string",
-      "role": "admin|user|guest",
-      "createdAt": "iso8601",
-      "metadata": {
-        "lastLogin": "iso8601",
-        "loginCount": "number"
-      }
-    }
-  }'
-```
-
-**3. Helix Response (Always Matches Schema):**
-```json
-{
-  "id": "usr_9Xk2LmNp",
-  "name": "Sarah Chen",
-  "email": "sarah.chen@company.com",
-  "role": "admin",
-  "createdAt": "2024-12-19T14:23:00Z",
-  "metadata": {
-    "lastLogin": "2024-12-19T09:15:00Z",
-    "loginCount": 47
-  }
-}
-```
-
-**4. Every Subsequent Request Uses This Schema:**
-```bash
-curl http://localhost:8080/api/users/123
-# Same structure guaranteed
-```
-
-### Schema Formats Supported
-
-**1. JSON Schema (Recommended):**
-```json
-{
-  "schema": {
-    "type": "object",
-    "properties": {
-      "id": { "type": "string", "pattern": "^usr_[a-zA-Z0-9]{8}$" },
-      "name": { "type": "string" },
-      "age": { "type": "integer", "minimum": 18, "maximum": 100 }
-    },
-    "required": ["id", "name"]
-  }
-}
-```
-
-**2. Simple Type Definitions:**
-```json
-{
-  "schema": {
-    "id": "string",
-    "name": "string",
-    "age": "number",
-    "active": "boolean",
-    "role": "admin|user|guest"
-  }
-}
-```
-
-**3. OpenAPI Schema:**
-```yaml
-# Place in assets/AI/SCHEMAS/users.yaml
-openapi: 3.0.0
-components:
-  schemas:
-    User:
-      type: object
-      properties:
-        id: 
-          type: string
-        name:
-          type: string
-```
-
-### Inline Schema Definition
-
-Edit `assets/AI/MOCKPILOT_SYSTEM.md` to define schemas:
-
-```markdown
-## User Resource Schema
-When handling /api/users endpoints:
-- id: string (format: usr_XXXXXXXX)
-- name: string (full name)
-- email: string (valid email)
-- role: enum [admin, user, guest]
-- createdAt: ISO 8601 timestamp
-```
-
-### Schema Validation
-
-```bash
-# Enable strict validation
-HELIX_SCHEMA_VALIDATION=strict  # Reject invalid responses
-HELIX_SCHEMA_VALIDATION=warn    # Log warnings only (default)
-HELIX_SCHEMA_VALIDATION=off     # Disable validation
-```
-
-### Why This Matters
-
-❌ **Without Schema:**
-```json
-// Request 1
-{"id": 123, "userName": "Alice"}
-
-// Request 2  
-{"userId": "abc", "name": "Bob"}
-
-// Your frontend breaks
-```
-
-✅ **With Schema:**
-```json
-// Request 1
-{"id": "usr_123", "name": "Alice"}
-
-// Request 2
-{"id": "usr_456", "name": "Bob"}
-
-// Consistent structure = happy frontend
-```
+- **CLI Interface** - Easy setup and management with `helix` commands
 
 ---
 
 ## Configuration
 
-Copy `.env.example` to `.env`:
+### Environment Variables
 
-```bash
-cp .env.example .env
+After running `helix init`, your `.env` file is automatically configured. You can also edit it manually:
+
+```env
+# AI Provider (demo/deepseek/groq/ollama)
+HELIX_AI_PROVIDER=demo
+
+# DeepSeek (via OpenRouter)
+HELIX_OPENROUTER_API_KEY=sk-or-v1-your-key-here
+HELIX_OPENROUTER_MODEL=deepseek/deepseek-chat
+
+# Groq
+HELIX_GROQ_API_KEY=gsk_your-key-here
+HELIX_GROQ_MODEL=llama-3.1-70b-versatile
+
+# Ollama (Local)
+HELIX_OLLAMA_HOST=http://localhost:11434
+HELIX_OLLAMA_MODEL=llama3
+
+# Server Settings
+HELIX_PORT=8080
+HELIX_HOST=0.0.0.0
+HELIX_DEBUG=true
+
+# Redis
+HELIX_REDIS_HOST=localhost
+HELIX_REDIS_PORT=6379
 ```
 
 ### AI Providers
 
-Helix supports multiple AI providers. Choose one in `.env`:
+Choose your AI provider during `helix init` or change it later with `helix config`:
 
 | Provider | Setup | Free Tier | Speed | Best For |
 |----------|-------|-----------|-------|----------|
@@ -275,191 +302,92 @@ Helix supports multiple AI providers. Choose one in `.env`:
 
 #### Demo Mode (Default)
 
-No setup needed. Uses template-based generation:
+No setup needed. Uses template-based generation with Faker library.
 
-```env
-HELIX_AI_PROVIDER=demo
+```bash
+helix init
+# Select: demo - Free, no API keys required
 ```
 
 #### DeepSeek via OpenRouter
 
-1. Sign up at [https://openrouter.ai/](https://openrouter.ai/)
-2. Get your API key
-3. Configure `.env`:
+1. Run `helix init` or `helix config`
+2. Select `deepseek`
+3. Enter your OpenRouter API key from [openrouter.ai](https://openrouter.ai/)
 
-```env
-HELIX_AI_PROVIDER=deepseek
-HELIX_OPENROUTER_API_KEY=sk-or-v1-your-key-here
-HELIX_OPENROUTER_MODEL=deepseek/deepseek-chat
+```bash
+helix config
+# Select: Change AI Provider → deepseek
+# Enter API key when prompted
 ```
 
 #### Groq
 
-1. Sign up at [https://console.groq.com/](https://console.groq.com/)
-2. Get your API key
-3. Configure `.env`:
+1. Run `helix init` or `helix config`
+2. Select `groq`
+3. Enter your Groq API key from [console.groq.com](https://console.groq.com/)
 
-```env
-HELIX_AI_PROVIDER=groq
-HELIX_GROQ_API_KEY=gsk_your-key-here
-HELIX_GROQ_MODEL=llama-3.1-70b-versatile
+```bash
+helix config
+# Select: Change AI Provider → groq
+# Enter API key when prompted
 ```
 
 #### Ollama (Local AI)
 
-Ollama runs AI models locally on your machine - **no API keys, no rate limits, completely offline**.
+Ollama runs AI models locally - **no API keys, no rate limits, completely offline**.
 
-**Why Ollama?**
-- ✓ 100% offline - no internet required
-- ✓ No API keys or rate limits
-- ✓ Complete data privacy
-- ✓ Free forever
-- ✓ Runs on your hardware
-
-**Step 1: Install Ollama**
-
-Visit [https://ollama.com/](https://ollama.com/) and download for your OS:
-
-**macOS:**
-```bash
-# Download from https://ollama.com/download/mac
-# Or use Homebrew
-brew install ollama
-```
-
-**Linux:**
-```bash
-curl -fsSL https://ollama.com/install.sh | sh
-```
-
-**Windows:**
-```bash
-# Download installer from https://ollama.com/download/windows
-```
-
-**Step 2: Download a Model**
+**Quick Setup:**
 
 ```bash
-# Recommended: Llama 3.2 (2GB) - Best for most users
+# 1. Install Ollama
+# Visit https://ollama.com/ and download for your OS
+
+# 2. Pull a model
 ollama pull llama3.2
 
-# Alternatives:
-ollama pull llama3.2:1b    # Tiny, very fast (1GB)
-ollama pull llama3.2:3b    # Small, fast (2GB) 
-ollama pull llama3.1:8b    # Balanced (4.7GB)
-ollama pull llama3.1:70b   # Powerful, slow (40GB, needs 32GB+ RAM)
-ollama pull mistral        # Alternative (4.1GB)
-ollama pull codellama      # Code-specialized (3.8GB)
+# 3. Configure Helix
+helix init
+# Select: ollama - Local LLM, private and unlimited
+# Enter Ollama host (default: http://localhost:11434)
+
+# 4. Start Helix
+helix start
 ```
 
-**Model Comparison:**
+**Model Recommendations:**
 
-| Model | Size | RAM Needed | Speed | Quality | Best For |
-|-------|------|------------|-------|---------|----------|
+| Model | Size | RAM | Speed | Quality | Best For |
+|-------|------|-----|-------|---------|----------|
 | `llama3.2:1b` | 1GB | 2GB | ⚡⚡⚡⚡⚡ | ⭐⭐⭐ | Testing, demos |
 | `llama3.2` | 2GB | 4GB | ⚡⚡⚡⚡ | ⭐⭐⭐⭐ | **Most users** |
 | `llama3.1:8b` | 4.7GB | 8GB | ⚡⚡⚡ | ⭐⭐⭐⭐ | Production |
 | `llama3.1:70b` | 40GB | 32GB+ | ⚡ | ⭐⭐⭐⭐⭐ | Maximum quality |
-| `mistral` | 4.1GB | 8GB | ⚡⚡⚡ | ⭐⭐⭐⭐ | Alternative |
-| `codellama` | 3.8GB | 8GB | ⚡⚡⚡ | ⭐⭐⭐⭐ | API schemas |
 
-**Step 3: Start Ollama Server**
+**Docker Setup:**
 
-```bash
-# Usually starts automatically, but you can verify:
-ollama serve
-
-# Check if running
-curl http://localhost:11434/api/tags
-```
-
-**Step 4: Configure Helix**
-
-Edit `.env`:
-
-```env
-HELIX_AI_PROVIDER=ollama
-HELIX_OLLAMA_MODEL=llama3.2
-
-# --- OPTION 1: Local Setup (Default) ---
-# Use this if running python main.py
-HELIX_OLLAMA_HOST=http://localhost:11434
-
-# --- OPTION 2: Docker Setup ---
-# Use this if running via Docker Desktop
-# HELIX_OLLAMA_HOST=http://host.docker.internal:11434
-
-```
-**Step 5: Test It Works**
+If using Docker, update your Ollama host:
 
 ```bash
-# Test Ollama directly
-ollama run llama3.2 "Generate a JSON user object"
-
-# Test through Helix
-curl http://localhost:8080/api/users
-
-# Check Helix is using Ollama
-curl http://localhost:8080/status
+helix config
+# Select: Change AI Provider → ollama
+# Host: http://host.docker.internal:11434
 ```
 
-**Troubleshooting Ollama:**
+**Troubleshooting:**
 
 ```bash
-# Problem: "connection refused"
-# Solution: Check if Ollama is running
-ps aux | grep ollama
-ollama serve
-
-# Problem: "model not found"  
-# Solution: List and download models
+# Check if Ollama is running
 ollama list
+
+# Start Ollama server
+ollama serve
+
+# Test connection
+curl http://localhost:11434/api/tags
+
+# Pull missing model
 ollama pull llama3.2
-
-# Problem: Slow responses
-# Solution: Use smaller model
-ollama pull llama3.2:1b
-
-# Problem: Out of memory
-# Solution: Close other apps or use smaller model
-# Llama3.2:1b only needs 2GB RAM
-
-# View logs (macOS/Linux)
-cat ~/.ollama/logs/server.log
-
-# View logs (Windows)
-# Check %LOCALAPPDATA%\Ollama\logs\
-```
-
-**Performance Tips:**
-
-```bash
-# 1. Use smaller models for faster responses
-HELIX_OLLAMA_MODEL=llama3.2:1b
-
-# 2. Reduce token limit
-HELIX_AI_MAX_TOKENS=500
-
-# 3. Lower temperature for more consistent output
-HELIX_AI_TEMPERATURE=0.3
-
-# 4. Enable aggressive caching
-HELIX_CACHE_TTL=7200  # 2 hours
-```
-
-**Complete Offline Setup:**
-
-```bash
-# 1. Download model once (with internet)
-ollama pull llama3.2
-
-# 2. Disconnect from internet
-
-# 3. Start Helix
-docker-compose up
-
-# 4. Everything works offline
-curl http://localhost:8080/api/users
 ```
 
 ---
@@ -513,19 +441,51 @@ curl -H "X-Session-ID: session-2" \
   http://localhost:8080/api/users
 ```
 
-### Recognized Resource Types
+---
 
-Helix generates appropriate data based on resource names:
+## Schema Enforcement
 
-| Resource | Generated Fields |
-|----------|------------------|
-| `users`, `accounts` | name, email, username, avatar, role, status |
-| `products`, `items` | name, price, sku, in_stock, category |
-| `orders` | order_number, total, status, items_count |
-| `posts`, `articles` | title, content, author, published, views |
-| `tasks`, `todos` | title, status, priority, due_date |
-| `events` | title, start_time, end_time, location |
-| `companies` | name, industry, employees_count, address |
+**Problem:** Random JSON structures break your frontend.
+
+**Solution:** Define your schema - Helix guarantees compliance.
+
+### Example: TypeScript Interface → Guaranteed JSON
+
+**1. Your TypeScript Interface:**
+```typescript
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  role: 'admin' | 'user' | 'guest';
+  createdAt: string; // ISO 8601
+}
+```
+
+**2. Define Schema in System Prompt:**
+
+Edit `assets/AI/MOCKPILOT_SYSTEM.md` (created by `helix init`):
+
+```markdown
+## User Resource Schema
+When handling /api/users endpoints:
+- id: string (format: usr_XXXXXXXX)
+- name: string (full name)
+- email: string (valid email)
+- role: enum [admin, user, guest]
+- createdAt: ISO 8601 timestamp
+```
+
+**3. Helix Response (Always Matches Schema):**
+```json
+{
+  "id": "usr_9Xk2LmNp",
+  "name": "Sarah Chen",
+  "email": "sarah.chen@company.com",
+  "role": "admin",
+  "createdAt": "2024-12-19T14:23:00Z"
+}
+```
 
 ---
 
@@ -582,34 +542,83 @@ curl http://localhost:8080/status
 
 ---
 
-## API Reference
+## System Status
 
-### System Endpoints
+Check your current configuration anytime:
 
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/` | GET | Landing page |
-| `/health` | GET | Health check |
-| `/status` | GET | Detailed system status |
-| `/dashboard` | GET | Live request dashboard |
-| `/docs` | GET | Swagger API documentation |
-| `/api/generate-spec` | GET | Generate OpenAPI spec |
+```bash
+helix status
+```
 
-### Dynamic Endpoints
+This shows:
+- Active AI provider
+- Redis connection status
+- Server port
+- API keys (masked)
+- Model being used
 
-| Pattern | Methods | Description |
-|---------|---------|-------------|
-| `/{any_path}` | GET | List collection or get single item |
-| `/{any_path}` | POST | Create new resource |
-| `/{any_path}` | PUT | Full update of resource |
-| `/{any_path}` | PATCH | Partial update of resource |
-| `/{any_path}` | DELETE | Delete resource |
+---
 
-**Examples:**
-- `GET /api/v1/users` → List users
-- `GET /api/users/123` → Get user 123
-- `POST /orders` → Create order
-- `DELETE /products/abc` → Delete product
+## Troubleshooting
+
+### Redis Connection Failed
+
+```bash
+# Check if setup completed
+helix status
+
+# Re-run setup if needed
+helix init
+
+# Or start Redis manually
+docker run -d -p 6379:6379 redis:7-alpine
+```
+
+### AI Provider Errors
+
+```bash
+# Check current configuration
+helix status
+
+# Reconfigure provider
+helix config
+# Select: Change AI Provider
+
+# Or fallback to demo mode
+helix config
+# Select: demo
+```
+
+### Configuration Issues
+
+```bash
+# Reset everything
+helix config
+# Select: Reset Configuration
+
+# Then reconfigure
+helix init
+```
+
+### CLI Not Found
+
+```bash
+# Reinstall Helix
+pip install -e .
+
+# Verify installation
+helix --help
+```
+
+### Port Already in Use
+
+```bash
+# Use different port
+helix start --port 3000
+
+# Or kill existing process
+lsof -ti:8080 | xargs kill -9
+```
 
 ---
 
@@ -618,6 +627,8 @@ curl http://localhost:8080/status
 ```
 helix/
 ├── app/
+│   ├── cli.py                           # CLI commands (helix init/start/status)
+│   ├── cliAssets/                       # CLI resources (logo, prompts)
 │   ├── routes/
 │   │   ├── requestbased/catch_all.py    # Dynamic mock handler
 │   │   └── ui/                          # Web interface
@@ -635,8 +646,9 @@ helix/
 │   └── main.py                          # FastAPI application
 ├── assets/AI/MOCKPILOT_SYSTEM.md        # AI system prompt (schema rules)
 ├── templates/                           # HTML templates
+├── pyproject.toml                       # CLI setup configuration
 ├── docker-compose.yml                   # Container orchestration
-└── .env                                 # Configuration
+└── .env                                 # Configuration (created by helix init)
 ```
 
 ---
@@ -650,67 +662,38 @@ helix/
 
 ---
 
-## Troubleshooting
+## Development
 
-### Redis Connection Failed
-
-```bash
-# Check Redis is running
-docker ps | grep redis
-
-# Start Redis manually
-docker run -d -p 6379:6379 redis:7-alpine
-```
-
-### AI Provider Errors
+### Install for Development
 
 ```bash
-# Check current provider status
-curl http://localhost:8080/status
+# Clone repository
+git clone https://github.com/ashfromsky/helix.git
+cd helix
 
-# Fallback to demo mode
-# Edit .env: HELIX_AI_PROVIDER=demo
+# Install in editable mode with dev dependencies
+pip install -e .
+pip install -r requirements-dev.txt
+
+# Run tests
+pytest tests/ -v
+
+# Format code
+black app/
+isort app/
+
+# Type checking
+mypy app/
 ```
 
-### Ollama Not Working
+### CLI Development
 
-```bash
-# Verify Ollama is running
-curl http://localhost:11434/api/tags
+The CLI is built with Typer and Rich. Main commands are in `app/cli.py`:
 
-# Check if model is downloaded
-ollama list
-
-# Pull model if missing
-ollama pull llama3.2
-
-# Restart Ollama
-killall ollama
-ollama serve
-```
-
-### Port Already in Use
-
-```bash
-# Change port in .env
-HELIX_PORT=8081
-
-# Or kill existing process
-lsof -ti:8080 | xargs kill -9
-```
-
-### Schema Not Being Enforced
-
-```bash
-# Check schema validation is enabled
-grep SCHEMA_VALIDATION .env
-
-# Verify schema is in MOCKPILOT_SYSTEM.md
-cat assets/AI/MOCKPILOT_SYSTEM.md
-
-# Clear cache to force schema reload
-curl -X DELETE http://localhost:8080/api/cache/clear
-```
+- `helix init`: Setup wizard (`init()` function)
+- `helix start`: Server launcher (`start()` function)
+- `helix status`: Configuration viewer (`status()` function)
+- `helix config`: Configuration manager (`config()` function)
 
 ---
 
@@ -749,3 +732,5 @@ Key points:
 ---
 
 **Schema-safe mocking for serious development.**
+
+Built with ❤️ for developers who want to focus on features, not infrastructure.
