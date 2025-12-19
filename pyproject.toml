@@ -28,3 +28,27 @@ ignore_missing_imports = true
 minversion = "7.0"
 testpaths = ["tests"]
 pythonpath = ["."]
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "helix"
+version = "0.1.0"
+description = "AI-Powered API Mocking Platform"
+requires-python = ">=3.11"
+dependencies = [
+    "typer",
+    "uvicorn",
+    "rich",
+    "questionary",
+    "fastapi"
+]
+
+[project.scripts]
+helix = "app.cli:app"
+
+[tool.setuptools.packages.find]
+include = ["app*"]
+exclude = ["assets*", "static*", "templates*", "tests*"]
