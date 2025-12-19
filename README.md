@@ -1,45 +1,14 @@
 # Helix
 
-> Your Backend not ready? No problem.
+**AI-powered API mocking server with guaranteed schema compliance.**
+
+Stop writing mock data manually. Define your schema once - Helix generates realistic data that **always matches your structure**.
 
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.95.2-blue.svg)](https://fastapi.tiangolo.com/)
-[![AGPLv3 License](https://img.shields.io/badge/License-AGPLv3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0.en.html)
-[![Docker](https://img.shields.io/badge/docker-ready-blue.svg)](https://hub.docker.com/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.95+-blue.svg)](https://fastapi.tiangolo.com/)
+[![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
 
-![Helix.png](assets/images/Helix.png)
-
-**Helix** is an AI-powered API mocking server that generates realistic responses on the fly. Stop writing mock data manually—let AI do it for you.
-
----
-
-## Why Helix?
-
-![Who needs Helix](assets/images/who-needs-helix.png)
-
-### Frontend Developers
-Stop waiting for the backend team. Unblock your UI development and build features against realistic, dynamic API responses immediately.
-
-### QA Engineers
-Test the unpredictable. Easily generate edge cases, error states, and complex data structures without agonizing database seeding.
-
-### MVP Builders & Startups
-Focus on the product, not the plumbing. Demonstrate a fully functional app experience to investors or users before writing a single line of backend code.
-
----
-
-## Key Features
-
-![Features Overview](assets/images/features-overview.png)
-
-### AI-Powered Core
-Responses are generated on the fly by AI. No hardcoded stubs or generic lorem ipsum—data is always unique, logical, and diverse.
-
-### Zero Configuration
-Plug & Play. Forget about defining schemas, models, or endless YAML config files. Just run Helix and hit any endpoint you can imagine. The system adapts automatically.
-
-### Deep Context Understanding
-Semantic Awareness: Helix grasps the semantics of your URLs and payloads. If you request `/api/v1/nuclear-reactor/status`, you'll get critical logs and pressure metrics—not a random list of users.
+![Helix Demo](assets/images/Helix.png)
 
 ---
 
@@ -48,15 +17,15 @@ Semantic Awareness: Helix grasps the semantics of your URLs and payloads. If you
 ### Using Docker (Recommended)
 
 ```bash
-# Clone the repository
+# Clone repository
 git clone https://github.com/ashfromsky/helix.git
 cd helix
 
-# Start with Docker Compose
+# Start services
 docker-compose up
 ```
 
-Visit `http://localhost:8080` to see Helix in action.
+Visit `http://localhost:8080`
 
 ### Local Setup
 
@@ -66,435 +35,498 @@ chmod +x setup.sh
 ./setup.sh
 
 # Activate virtual environment
-source venv/bin/activate
+source venv/bin/activate  # Linux/Mac
+# or
+venv\Scripts\activate     # Windows
 
-# Start the server
+# Start server
 uvicorn app.main:app --reload --port 8080
+```
+
+### Want to Run Offline with Local LLM?
+
+→ **[Jump to Ollama Setup](#ollama-local-ai)** for completely offline AI with no API keys.
+
+---
+
+## How It Works
+
+Helix uses your `MOCKPILOT_SYSTEM.md` rules to strictly follow your API design.
+
+**Basic Mode (No Schema):**
+```bash
+# Helix infers structure from path and method
+curl http://localhost:8080/api/users
+# Returns: realistic user data
+```
+
+**Schema Mode (Guaranteed Structure):**
+```bash
+# 1. Define your schema
+POST /api/users
+Body: {
+  "schema": {
+    "id": "string",
+    "name": "string",
+    "email": "string",
+    "role": "admin|user|guest"
+  }
+}
+
+# 2. Helix generates data matching your schema exactly
+# Every field, every type, every enum value - guaranteed
+```
+
+**The key difference:** 
+- **Without schema**: Helix makes smart guesses (great for demos)
+- **With schema**: Helix enforces exact structure (safe for production)
+
+---
+
+## Features
+
+- **Schema Enforcement** - Define structure once, get consistent data forever ([see below](#schema-enforcement))
+- **Zero Configuration** - Hit any endpoint and get instant responses
+- **AI-Powered** - Uses DeepSeek, Groq, Ollama, or built-in templates
+- **Context Aware** - Remembers your actions within sessions
+- **Smart Data** - Generates realistic names, emails, dates, IDs
+- **REST Compatible** - Follows HTTP standards automatically
+- **Redis Caching** - Fast responses with intelligent caching
+- **Chaos Engineering** - Simulate failures and latency
+- **Live Dashboard** - Monitor requests in real-time
+
+---
+
+## Schema Enforcement
+
+**Problem:** Random JSON structures break your frontend.
+
+**Solution:** Define your schema - Helix guarantees compliance.
+
+### Example: TypeScript Interface → Guaranteed JSON
+
+**1. Your TypeScript Interface:**
+```typescript
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  role: 'admin' | 'user' | 'guest';
+  createdAt: string; // ISO 8601
+  metadata: {
+    lastLogin: string;
+    loginCount: number;
+  }
+}
+```
+
+**2. Send Schema to Helix:**
+```bash
+curl -X POST http://localhost:8080/api/users \
+  -H "Content-Type: application/json" \
+  -d '{
+    "schema": {
+      "id": "string",
+      "name": "string", 
+      "email": "string",
+      "role": "admin|user|guest",
+      "createdAt": "iso8601",
+      "metadata": {
+        "lastLogin": "iso8601",
+        "loginCount": "number"
+      }
+    }
+  }'
+```
+
+**3. Helix Response (Always Matches Schema):**
+```json
+{
+  "id": "usr_9Xk2LmNp",
+  "name": "Sarah Chen",
+  "email": "sarah.chen@company.com",
+  "role": "admin",
+  "createdAt": "2024-12-19T14:23:00Z",
+  "metadata": {
+    "lastLogin": "2024-12-19T09:15:00Z",
+    "loginCount": 47
+  }
+}
+```
+
+**4. Every Subsequent Request Uses This Schema:**
+```bash
+curl http://localhost:8080/api/users/123
+# Same structure guaranteed
+```
+
+### Schema Formats Supported
+
+**1. JSON Schema (Recommended):**
+```json
+{
+  "schema": {
+    "type": "object",
+    "properties": {
+      "id": { "type": "string", "pattern": "^usr_[a-zA-Z0-9]{8}$" },
+      "name": { "type": "string" },
+      "age": { "type": "integer", "minimum": 18, "maximum": 100 }
+    },
+    "required": ["id", "name"]
+  }
+}
+```
+
+**2. Simple Type Definitions:**
+```json
+{
+  "schema": {
+    "id": "string",
+    "name": "string",
+    "age": "number",
+    "active": "boolean",
+    "role": "admin|user|guest"
+  }
+}
+```
+
+**3. OpenAPI Schema:**
+```yaml
+# Place in assets/AI/SCHEMAS/users.yaml
+openapi: 3.0.0
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        id: 
+          type: string
+        name:
+          type: string
+```
+
+### Inline Schema Definition
+
+Edit `assets/AI/MOCKPILOT_SYSTEM.md` to define schemas:
+
+```markdown
+## User Resource Schema
+When handling /api/users endpoints:
+- id: string (format: usr_XXXXXXXX)
+- name: string (full name)
+- email: string (valid email)
+- role: enum [admin, user, guest]
+- createdAt: ISO 8601 timestamp
+```
+
+### Schema Validation
+
+```bash
+# Enable strict validation
+HELIX_SCHEMA_VALIDATION=strict  # Reject invalid responses
+HELIX_SCHEMA_VALIDATION=warn    # Log warnings only (default)
+HELIX_SCHEMA_VALIDATION=off     # Disable validation
+```
+
+### Why This Matters
+
+❌ **Without Schema:**
+```json
+// Request 1
+{"id": 123, "userName": "Alice"}
+
+// Request 2  
+{"userId": "abc", "name": "Bob"}
+
+// Your frontend breaks
+```
+
+✅ **With Schema:**
+```json
+// Request 1
+{"id": "usr_123", "name": "Alice"}
+
+// Request 2
+{"id": "usr_456", "name": "Bob"}
+
+// Consistent structure = happy frontend
+```
+
+---
+
+## Configuration
+
+Copy `.env.example` to `.env`:
+
+```bash
+cp .env.example .env
+```
+
+### AI Providers
+
+Helix supports multiple AI providers. Choose one in `.env`:
+
+| Provider | Setup | Free Tier | Speed | Best For |
+|----------|-------|-----------|-------|----------|
+| **demo** (default) | None needed | ✓ Unlimited | Fast | Getting started |
+| **DeepSeek** | API key required | 500 req/day | Medium | Production |
+| **Groq** | API key required | 14,400 req/day | Ultra-fast | High volume |
+| **Ollama** | Local installation | ✓ Unlimited | Varies | Offline/Privacy |
+
+#### Demo Mode (Default)
+
+No setup needed. Uses template-based generation:
+
+```env
+HELIX_AI_PROVIDER=demo
+```
+
+#### DeepSeek via OpenRouter
+
+1. Sign up at [https://openrouter.ai/](https://openrouter.ai/)
+2. Get your API key
+3. Configure `.env`:
+
+```env
+HELIX_AI_PROVIDER=deepseek
+HELIX_OPENROUTER_API_KEY=sk-or-v1-your-key-here
+HELIX_OPENROUTER_MODEL=deepseek/deepseek-chat
+```
+
+#### Groq
+
+1. Sign up at [https://console.groq.com/](https://console.groq.com/)
+2. Get your API key
+3. Configure `.env`:
+
+```env
+HELIX_AI_PROVIDER=groq
+HELIX_GROQ_API_KEY=gsk_your-key-here
+HELIX_GROQ_MODEL=llama-3.1-70b-versatile
+```
+
+#### Ollama (Local AI)
+
+Ollama runs AI models locally on your machine - **no API keys, no rate limits, completely offline**.
+
+**Why Ollama?**
+- ✓ 100% offline - no internet required
+- ✓ No API keys or rate limits
+- ✓ Complete data privacy
+- ✓ Free forever
+- ✓ Runs on your hardware
+
+**Step 1: Install Ollama**
+
+Visit [https://ollama.com/](https://ollama.com/) and download for your OS:
+
+**macOS:**
+```bash
+# Download from https://ollama.com/download/mac
+# Or use Homebrew
+brew install ollama
+```
+
+**Linux:**
+```bash
+curl -fsSL https://ollama.com/install.sh | sh
+```
+
+**Windows:**
+```bash
+# Download installer from https://ollama.com/download/windows
+```
+
+**Step 2: Download a Model**
+
+```bash
+# Recommended: Llama 3.2 (2GB) - Best for most users
+ollama pull llama3.2
+
+# Alternatives:
+ollama pull llama3.2:1b    # Tiny, very fast (1GB)
+ollama pull llama3.2:3b    # Small, fast (2GB) 
+ollama pull llama3.1:8b    # Balanced (4.7GB)
+ollama pull llama3.1:70b   # Powerful, slow (40GB, needs 32GB+ RAM)
+ollama pull mistral        # Alternative (4.1GB)
+ollama pull codellama      # Code-specialized (3.8GB)
+```
+
+**Model Comparison:**
+
+| Model | Size | RAM Needed | Speed | Quality | Best For |
+|-------|------|------------|-------|---------|----------|
+| `llama3.2:1b` | 1GB | 2GB | ⚡⚡⚡⚡⚡ | ⭐⭐⭐ | Testing, demos |
+| `llama3.2` | 2GB | 4GB | ⚡⚡⚡⚡ | ⭐⭐⭐⭐ | **Most users** |
+| `llama3.1:8b` | 4.7GB | 8GB | ⚡⚡⚡ | ⭐⭐⭐⭐ | Production |
+| `llama3.1:70b` | 40GB | 32GB+ | ⚡ | ⭐⭐⭐⭐⭐ | Maximum quality |
+| `mistral` | 4.1GB | 8GB | ⚡⚡⚡ | ⭐⭐⭐⭐ | Alternative |
+| `codellama` | 3.8GB | 8GB | ⚡⚡⚡ | ⭐⭐⭐⭐ | API schemas |
+
+**Step 3: Start Ollama Server**
+
+```bash
+# Usually starts automatically, but you can verify:
+ollama serve
+
+# Check if running
+curl http://localhost:11434/api/tags
+```
+
+**Step 4: Configure Helix**
+
+Edit `.env`:
+
+```env
+HELIX_AI_PROVIDER=ollama
+HELIX_OLLAMA_HOST=http://localhost:11434
+HELIX_OLLAMA_MODEL=llama3.2
+```
+
+**Step 5: Start Helix**
+
+```bash
+docker-compose up
+# or
+uvicorn app.main:app --reload --port 8080
+```
+
+**Step 6: Test It Works**
+
+```bash
+# Test Ollama directly
+ollama run llama3.2 "Generate a JSON user object"
+
+# Test through Helix
+curl http://localhost:8080/api/users
+
+# Check Helix is using Ollama
+curl http://localhost:8080/status
+```
+
+**Troubleshooting Ollama:**
+
+```bash
+# Problem: "connection refused"
+# Solution: Check if Ollama is running
+ps aux | grep ollama
+ollama serve
+
+# Problem: "model not found"  
+# Solution: List and download models
+ollama list
+ollama pull llama3.2
+
+# Problem: Slow responses
+# Solution: Use smaller model
+ollama pull llama3.2:1b
+
+# Problem: Out of memory
+# Solution: Close other apps or use smaller model
+# Llama3.2:1b only needs 2GB RAM
+
+# View logs (macOS/Linux)
+cat ~/.ollama/logs/server.log
+
+# View logs (Windows)
+# Check %LOCALAPPDATA%\Ollama\logs\
+```
+
+**Performance Tips:**
+
+```bash
+# 1. Use smaller models for faster responses
+HELIX_OLLAMA_MODEL=llama3.2:1b
+
+# 2. Reduce token limit
+HELIX_AI_MAX_TOKENS=500
+
+# 3. Lower temperature for more consistent output
+HELIX_AI_TEMPERATURE=0.3
+
+# 4. Enable aggressive caching
+HELIX_CACHE_TTL=7200  # 2 hours
+```
+
+**Complete Offline Setup:**
+
+```bash
+# 1. Download model once (with internet)
+ollama pull llama3.2
+
+# 2. Disconnect from internet
+
+# 3. Start Helix
+docker-compose up
+
+# 4. Everything works offline
+curl http://localhost:8080/api/users
 ```
 
 ---
 
 ## Usage Examples
 
-### Creating a User (POST)
-
-![POST Example](assets/images/post-example.png)
-
-Send empty fields in your request body, and Helix automatically fills them with realistic, contextually appropriate data:
+### Basic CRUD Operations
 
 ```bash
-curl -X POST http://localhost:8080/api/v1/users \
+# GET collection
+curl http://localhost:8080/api/products
+
+# GET single item
+curl http://localhost:8080/api/products/prod_123
+
+# POST (create)
+curl -X POST http://localhost:8080/api/products \
   -H "Content-Type: application/json" \
-  -d '{
-    "id": "",
-    "name": "",
-    "secret_question": "",
-    "hashed_password": ""
-  }'
-```
+  -d '{"name": "Laptop", "price": 999}'
 
-**Response:**
-```json
-{
-  "id": "usr_9Xk2LmNpQr",
-  "name": "Emily Johnson",
-  "secret_question": "What was the name of your first pet?",
-  "hashed_password": "$2b$12$eXaMpI3RtYkL9qZ8Jk2NmO",
-  "created_at": "2023-10-05T14:30:00Z",
-  "updated_at": "2023-10-05T14:30:00Z"
-}
-```
-
-### Fetching Data (GET)
-
-![GET Example](assets/images/get-example.png)
-
-Request any resource without prior setup:
-
-```bash
-curl http://localhost:8080/api/v1/cities
-```
-
-**Response:**
-```json
-{
-  "id": "cty_9Xm1",
-  "name": "New York",
-  "country": "USA",
-  "timezone": "America/New_York"
-}
-```
-
-### Complex Domain-Specific Requests
-
-![Complex Request Example](assets/images/complex-request.png)
-
-Helix understands context and generates domain-appropriate responses:
-
-```bash
-curl -X POST http://localhost:8080/api/v1/net-security/diagnostics \
+# PUT (full update)
+curl -X PUT http://localhost:8080/api/products/prod_123 \
   -H "Content-Type: application/json" \
-  -d '{
-    "system_id": "HELIX-CORE-09",
-    "alert_level": "CRITICAL",
-    "timestamp": "2077-12-18T23:45:00Z",
-    "logs": [
-      "WARN: Unauthorized access attempt detected at Port 443",
-      "ERR: Encryption key rotation failed",
-      "INFO: Unidentified neural signature detected in Sector 7"
-    ],
-    "request": "Provide a full damage assessment, probability of data breach, and suggested countermeasures."
-  }'
+  -d '{"name": "Gaming Laptop", "price": 1499}'
+
+# PATCH (partial update)
+curl -X PATCH http://localhost:8080/api/products/prod_123 \
+  -H "Content-Type: application/json" \
+  -d '{"price": 1299}'
+
+# DELETE
+curl -X DELETE http://localhost:8080/api/products/prod_123
 ```
 
-**Response:**
-```json
-{
-  "diagnostic_id": "diag_Z9XyWqTnLm",
-  "system_id": "HELIX-CORE-09",
-  "alert_level": "CRITICAL",
-  "timestamp": "2077-12-18T23:45:00Z",
-  "logs": [
-    "WARN: Unauthorized access attempt detected at Port 443",
-    "ERR: Encryption key rotation failed",
-    "INFO: Unidentified neural signature detected in Sector 7"
-  ],
-  "damage_assessment": {
-    "network_integrity": 35,
-    "data_loss": "High",
-    "breach_probability": 87.5,
-    "affected_systems": [
-      "Sector 7",
-      "Port 443"
-    ]
-  },
-  "countermeasures": [
-    "Initiate immediate lockdown of Sector 7",
-    "Deploy intrusion detection AI at Port 443",
-    "Force reissue of all encryption keys",
-    "Activate neural firewall protocols"
-  ],
-  "status": "Diagnostic report generated",
-  "created_at": "2077-12-18T23:45:30Z"
-}
-```
+### Using Sessions
 
----
-
-## Features
-
-- **Zero Configuration** - Make requests to any endpoint, get instant realistic responses
-- **AI-Powered** - Supports DeepSeek, Groq, Ollama, or built-in template mode
-- **Context Awareness** - Remembers your actions across requests for consistency
-- **Smart Data Generation** - Creates realistic names, emails, dates, and IDs
-- **Chaos Engineering** - Simulate failures, latency, and errors for resilience testing
-- **Redis Caching** - Fast response times with intelligent caching
-- **Docker Ready** - Production-ready containerized deployment
-
----
-
-## Session Management
-
-Use `X-Session-ID` header to maintain context across requests:
+Maintain context across requests with `X-Session-ID` header:
 
 ```bash
-curl -H "X-Session-ID: dev-session-1" \
-  http://localhost:8080/api/orders
+# Session 1: Create a user
+curl -H "X-Session-ID: session-1" \
+  -X POST http://localhost:8080/api/users \
+  -d '{"name": "Alice"}'
+
+# Session 1: List users - returns Alice
+curl -H "X-Session-ID: session-1" \
+  http://localhost:8080/api/users
+
+# Session 2: List users - returns different data
+curl -H "X-Session-ID: session-2" \
+  http://localhost:8080/api/users
 ```
 
----
+### Recognized Resource Types
 
-## API Endpoints
-
-### System Endpoints
-
-#### `GET /`
-Landing page with project information and documentation.
-
-**Response:** HTML page
-
----
-
-#### `GET /health`
-Health check endpoint for monitoring.
-
-**Response:**
-```json
-{
-  "status": "healthy",
-  "timestamp": "2024-12-12T10:30:00.000Z",
-  "services": {
-    "redis": "up",
-    "ai_provider": "demo",
-    "ai_model": "template-based"
-  }
-}
-```
-
----
-
-#### `GET /status`
-Detailed status information about all services.
-
-**Response:**
-```json
-{
-  "version": "0.1.0",
-  "status": "operational",
-  "redis": {
-    "connected": true,
-    "status": "up"
-  },
-  "ai": {
-    "provider": "demo",
-    "model": "template-based",
-    "fallback_enabled": true,
-    "available_providers": ["demo", "deepseek", "groq", "ollama"]
-  }
-}
-```
-
----
-
-### Dynamic Mock Endpoints
-
-#### `GET /{path:path}`
-Get collection or single resource.
-
-**Examples:**
-
-```bash
-# Get collection
-GET /api/users
-GET /api/v1/products
-GET /orders
-
-# Get single resource
-GET /api/users/123
-GET /api/products/prod_abc123
-GET /orders/ord_456
-```
-
-**Response (Collection):**
-```json
-{
-  "users": [
-    {
-      "id": "usr_a1b2c3",
-      "name": "Sarah Chen",
-      "email": "sarah@company.com",
-      "username": "schen",
-      "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=a1b2c3",
-      "status": "active",
-      "role": "admin",
-      "created_at": "2024-12-10T14:30:00Z",
-      "updated_at": "2024-12-10T14:30:00Z"
-    }
-  ],
-  "total": 3,
-  "page": 1,
-  "per_page": 10,
-  "has_more": false
-}
-```
-
-**Response (Single Resource):**
-```json
-{
-  "id": "usr_123",
-  "name": "John Doe",
-  "email": "john@example.com",
-  "created_at": "2024-12-10T14:30:00Z",
-  "updated_at": "2024-12-10T14:30:00Z"
-}
-```
-
----
-
-#### `POST /{path:path}`
-Create a new resource.
-
-**Request:**
-```bash
-POST /api/users
-Content-Type: application/json
-
-{
-  "name": "Alice Smith",
-  "email": "alice@example.com",
-  "role": "developer"
-}
-```
-
-**Response:** `201 Created`
-```json
-{
-  "id": "usr_d4e5f6",
-  "name": "Alice Smith",
-  "email": "alice@example.com",
-  "role": "developer",
-  "created_at": "2024-12-12T10:45:00Z",
-  "updated_at": "2024-12-12T10:45:00Z"
-}
-```
-
-**Headers:**
-```
-Location: /api/users/usr_d4e5f6
-```
-
----
-
-#### `PUT /{path:path}`
-Update entire resource (full replacement).
-
-**Request:**
-```bash
-PUT /api/users/123
-Content-Type: application/json
-
-{
-  "name": "Alice Johnson",
-  "email": "alice.johnson@example.com",
-  "role": "senior-developer"
-}
-```
-
-**Response:** `200 OK`
-```json
-{
-  "id": "usr_123",
-  "name": "Alice Johnson",
-  "email": "alice.johnson@example.com",
-  "role": "senior-developer",
-  "created_at": "2024-12-10T14:30:00Z",
-  "updated_at": "2024-12-12T11:00:00Z"
-}
-```
-
----
-
-#### `PATCH /{path:path}`
-Partial update of resource.
-
-**Request:**
-```bash
-PATCH /api/users/123
-Content-Type: application/json
-
-{
-  "role": "team-lead"
-}
-```
-
-**Response:** `200 OK`
-```json
-{
-  "id": "usr_123",
-  "name": "Alice Johnson",
-  "email": "alice.johnson@example.com",
-  "role": "team-lead",
-  "created_at": "2024-12-10T14:30:00Z",
-  "updated_at": "2024-12-12T11:15:00Z"
-}
-```
-
----
-
-#### `DELETE /{path:path}`
-Delete a resource.
-
-**Request:**
-```bash
-DELETE /api/users/123
-```
-
-**Response:** `204 No Content`
-
----
-
-#### `OPTIONS /{path:path}`
-CORS preflight support.
-
-**Response:** `200 OK`
-```
-Access-Control-Allow-Origin: *
-Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS
-Access-Control-Allow-Headers: Content-Type, X-Session-ID
-```
-
----
-
-## Recognized Resource Types
-
-Helix automatically generates appropriate data based on resource names:
+Helix generates appropriate data based on resource names:
 
 | Resource | Generated Fields |
 |----------|------------------|
-| `users`, `accounts`, `profiles` | name, email, username, avatar, status, role |
-| `products`, `items` | name, description, price, currency, sku, in_stock, category |
-| `orders`, `purchases` | order_number, total, status, customer_id, items_count, shipping_address |
-| `posts`, `articles`, `blog` | title, content, author, slug, published, views, likes |
-| `comments`, `reviews` | text, author, rating, likes |
-| `tasks`, `todos` | title, description, status, priority, assigned_to, due_date |
-| `events`, `meetings` | title, description, start_time, end_time, location, organizer |
-| `companies`, `organizations` | name, industry, employees_count, website, email, phone, address |
-
-For unrecognized resources, Helix generates generic but realistic data.
-
----
-
-## Headers
-
-### Request Headers
-
-| Header | Description | Required |
-|--------|-------------|----------|
-| `X-Session-ID` | Session identifier for context awareness | No |
-| `Content-Type` | Must be `application/json` for POST/PUT/PATCH | Conditional |
-
-**Example:**
-```bash
-curl -H "X-Session-ID: my-session" \
-     -H "Content-Type: application/json" \
-     -X POST http://localhost:8080/api/users \
-     -d '{"name": "Test User"}'
-```
-
-### Response Headers
-
-| Header | Description |
-|--------|-------------|
-| `Content-Type` | Always `application/json` |
-| `Location` | Resource URL (for POST responses with 201) |
-
----
-
-## Configuration
-
-Copy `.env.example` to `.env` and configure:
-
-```bash
-# AI Provider (demo, deepseek, ollama, groq)
-HELIX_AI_PROVIDER=demo
-
-# DeepSeek via OpenRouter (free tier: ~500 req/day)
-HELIX_OPENROUTER_API_KEY=your-key-here
-
-# Groq (free tier: 14,400 req/day)
-HELIX_GROQ_API_KEY=your-key-here
-
-# Local Ollama
-HELIX_OLLAMA_HOST=http://localhost:11434
-HELIX_OLLAMA_MODEL=llama3
-```
-
-### AI Providers
-
-- **demo** - Template-based, no API key needed (default)
-- **deepseek** - Via OpenRouter, free tier available
-- **groq** - Ultra-fast inference, generous free tier
-- **ollama** - Local models, completely offline
+| `users`, `accounts` | name, email, username, avatar, role, status |
+| `products`, `items` | name, price, sku, in_stock, category |
+| `orders` | order_number, total, status, items_count |
+| `posts`, `articles` | title, content, author, published, views |
+| `tasks`, `todos` | title, status, priority, due_date |
+| `events` | title, start_time, end_time, location |
+| `companies` | name, industry, employees_count, address |
 
 ---
 
@@ -502,43 +534,83 @@ HELIX_OLLAMA_MODEL=llama3
 
 ### Chaos Engineering
 
-Enable chaos mode to test error handling:
+Simulate production failures to test error handling:
 
-```bash
+```env
 HELIX_CHAOS_ENABLED=true
-HELIX_CHAOS_ERROR_RATE=0.1      # 10% random errors
-HELIX_CHAOS_LATENCY_RATE=0.15   # 15% latency spikes
-HELIX_CHAOS_MIN_DELAY_MS=2000   # Minimum delay
-HELIX_CHAOS_MAX_DELAY_MS=5000   # Maximum delay
+HELIX_CHAOS_ERROR_RATE=0.1        # 10% requests fail
+HELIX_CHAOS_LATENCY_RATE=0.15     # 15% requests delayed
+HELIX_CHAOS_MIN_DELAY_MS=2000     # Min delay: 2s
+HELIX_CHAOS_MAX_DELAY_MS=5000     # Max delay: 5s
 ```
 
-### Session Context
+### OpenAPI Spec Generation
 
-Helix maintains context within sessions:
+Generate OpenAPI specification from your traffic:
 
 ```bash
-# Session 1: Create a product
-curl -H "X-Session-ID: session-1" \
-  -X POST http://localhost:8080/api/products \
-  -d '{"name": "Laptop", "price": 1299.99}'
+# Make some requests first
+curl http://localhost:8080/api/users
+curl http://localhost:8080/api/products
 
-# Session 1: List products - returns the created product
-curl -H "X-Session-ID: session-1" \
-  http://localhost:8080/api/products
-
-# Session 2: List products - returns different data
-curl -H "X-Session-ID: session-2" \
-  http://localhost:8080/api/products
+# Generate spec
+curl http://localhost:8080/api/generate-spec?limit=50
 ```
 
-### Caching
+### Live Dashboard
 
-Responses are cached in Redis with the following key structure:
+Monitor all requests in real-time:
+
 ```
-{session_id}:{method}:{path}:{body_hash}
+http://localhost:8080/dashboard
 ```
 
-Default TTL: 24 hours
+Features:
+- Live request logging
+- Method, path, status, latency
+- Request/response inspection
+- Clear logs
+
+### Health Monitoring
+
+```bash
+# Quick health check
+curl http://localhost:8080/health
+
+# Detailed status
+curl http://localhost:8080/status
+```
+
+---
+
+## API Reference
+
+### System Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/` | GET | Landing page |
+| `/health` | GET | Health check |
+| `/status` | GET | Detailed system status |
+| `/dashboard` | GET | Live request dashboard |
+| `/docs` | GET | Swagger API documentation |
+| `/api/generate-spec` | GET | Generate OpenAPI spec |
+
+### Dynamic Endpoints
+
+| Pattern | Methods | Description |
+|---------|---------|-------------|
+| `/{any_path}` | GET | List collection or get single item |
+| `/{any_path}` | POST | Create new resource |
+| `/{any_path}` | PUT | Full update of resource |
+| `/{any_path}` | PATCH | Partial update of resource |
+| `/{any_path}` | DELETE | Delete resource |
+
+**Examples:**
+- `GET /api/v1/users` → List users
+- `GET /api/users/123` → Get user 123
+- `POST /orders` → Create order
+- `DELETE /products/abc` → Delete product
 
 ---
 
@@ -547,75 +619,134 @@ Default TTL: 24 hours
 ```
 helix/
 ├── app/
-│   ├── routes/          # API endpoints
-│   │   ├── requestbased/
-│   │   │   └── catch_all.py    # Dynamic mock endpoints
-│   │   └── ui/
-│   │       ├── default.py      # Landing page
-│   │       └── health.py       # Health & status
-│   ├── services/        # Business logic
-│   │   ├── ai/         # AI provider integrations
-│   │   │   ├── providers/
-│   │   │   │   ├── demo.py     # Template-based
-│   │   │   │   ├── deepseek.py # DeepSeek
-│   │   │   │   ├── groq.py     # Groq
-│   │   │   │   └── ollama.py   # Ollama
-│   │   │   ├── manager.py      # Provider manager
-│   │   │   └── config.py       # AI settings
-│   │   ├── cache.py    # Redis caching
-│   │   ├── context.py  # Session management
-│   │   └── analyzer.py # Request analysis
-│   └── database/        # Redis configuration
-├── assets/AI/           # AI system prompts
-├── templates/           # Web UI
-└── docker-compose.yml   # Container orchestration
-```
-
----
-
-## API Response Format
-
-All AI providers return standardized responses:
-
-```json
-{
-  "status_code": 200,
-  "headers": {
-    "Content-Type": "application/json"
-  },
-  "body": {
-    "id": "usr_a1b2c3",
-    "name": "Sarah Chen",
-    "email": "sarah@company.com",
-    "created_at": "2024-12-10T14:30:00Z"
-  }
-}
+│   ├── routes/
+│   │   ├── requestbased/catch_all.py    # Dynamic mock handler
+│   │   └── ui/                          # Web interface
+│   ├── services/
+│   │   ├── ai/
+│   │   │   ├── providers/               # AI provider implementations
+│   │   │   │   ├── demo.py             # Template-based (default)
+│   │   │   │   ├── deepseek.py         # DeepSeek via OpenRouter
+│   │   │   │   ├── groq.py             # Groq inference
+│   │   │   │   └── ollama.py           # Local Ollama
+│   │   │   └── manager.py              # Provider manager
+│   │   ├── cache.py                     # Redis caching
+│   │   ├── context.py                   # Session management
+│   │   └── logger.py                    # Request logging
+│   └── main.py                          # FastAPI application
+├── assets/AI/MOCKPILOT_SYSTEM.md        # AI system prompt (schema rules)
+├── templates/                           # HTML templates
+├── docker-compose.yml                   # Container orchestration
+└── .env                                 # Configuration
 ```
 
 ---
 
 ## Requirements
 
-- Python 3.11+
-- Redis (via Docker or local installation)
-- Optional: AI provider API keys
+- **Python**: 3.11+
+- **Redis**: 7.0+ (via Docker or local)
+- **Docker**: Optional but recommended
+- **Ollama**: Optional (for local AI)
+
+---
+
+## Troubleshooting
+
+### Redis Connection Failed
+
+```bash
+# Check Redis is running
+docker ps | grep redis
+
+# Start Redis manually
+docker run -d -p 6379:6379 redis:7-alpine
+```
+
+### AI Provider Errors
+
+```bash
+# Check current provider status
+curl http://localhost:8080/status
+
+# Fallback to demo mode
+# Edit .env: HELIX_AI_PROVIDER=demo
+```
+
+### Ollama Not Working
+
+```bash
+# Verify Ollama is running
+curl http://localhost:11434/api/tags
+
+# Check if model is downloaded
+ollama list
+
+# Pull model if missing
+ollama pull llama3.2
+
+# Restart Ollama
+killall ollama
+ollama serve
+```
+
+### Port Already in Use
+
+```bash
+# Change port in .env
+HELIX_PORT=8081
+
+# Or kill existing process
+lsof -ti:8080 | xargs kill -9
+```
+
+### Schema Not Being Enforced
+
+```bash
+# Check schema validation is enabled
+grep SCHEMA_VALIDATION .env
+
+# Verify schema is in MOCKPILOT_SYSTEM.md
+cat assets/AI/MOCKPILOT_SYSTEM.md
+
+# Clear cache to force schema reload
+curl -X DELETE http://localhost:8080/api/cache/clear
+```
 
 ---
 
 ## Contributing
 
-Contributions are welcome. Please open an issue first to discuss proposed changes.
+Contributions welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) first.
 
-## ⚠️ Security Notice
-
-Never commit your `.env` file or API keys to Git. The `.env.example` is safe to share, but always keep your actual `.env` private.
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests
+5. Submit a pull request
 
 ---
 
 ## License
 
-AGPLv3 - See [LICENSE](LICENSE) for details.
+**GNU Affero General Public License v3.0 (AGPL-3.0)**
+
+This project is free and open-source software. See [LICENSE](LICENSE) for details.
+
+Key points:
+- ✓ Free to use, modify, and distribute
+- ✓ Must disclose source code
+- ✓ Network use = distribution (AGPL requirement)
+- ✓ Same license for derivatives
 
 ---
 
-**Built for developers who want to focus on features, not infrastructure.**
+## Links
+
+- **GitHub**: [https://github.com/ashfromsky/helix](https://github.com/ashfromsky/helix)
+- **Issues**: [https://github.com/ashfromsky/helix/issues](https://github.com/ashfromsky/helix/issues)
+- **Discussions**: [https://github.com/ashfromsky/helix/discussions](https://github.com/ashfromsky/helix/discussions)
+
+---
+
+**Schema-safe mocking for serious development.**
