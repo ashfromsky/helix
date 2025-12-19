@@ -1,6 +1,6 @@
 # Contributing to Helix
 
-Thank you for your interest in contributing to AcquireMock! We welcome contributions from the community.
+Thank you for your interest in contributing to Helix! We welcome contributions from the community.
 
 ## How to Contribute
 
