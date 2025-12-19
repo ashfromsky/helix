@@ -379,19 +379,18 @@ Edit `.env`:
 
 ```env
 HELIX_AI_PROVIDER=ollama
-HELIX_OLLAMA_HOST=http://localhost:11434
 HELIX_OLLAMA_MODEL=llama3.2
+
+# --- OPTION 1: Local Setup (Default) ---
+# Use this if running python main.py
+HELIX_OLLAMA_HOST=http://localhost:11434
+
+# --- OPTION 2: Docker Setup ---
+# Use this if running via Docker Desktop
+# HELIX_OLLAMA_HOST=http://host.docker.internal:11434
+
 ```
-
-**Step 5: Start Helix**
-
-```bash
-docker-compose up
-# or
-uvicorn app.main:app --reload --port 8080
-```
-
-**Step 6: Test It Works**
+**Step 5: Test It Works**
 
 ```bash
 # Test Ollama directly
